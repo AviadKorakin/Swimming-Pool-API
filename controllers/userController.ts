@@ -118,3 +118,27 @@ export const isExistUser = async (
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+// Get User State
+export const getUserState = async (
+    req: Request,
+    res: Response<{ state: number; id: string | null } | { error: string }>
+): Promise<void> => {
+    try {
+        const userId = req.auth?.userId;
+
+        if (!userId) {
+            res.status(403).json({ error: 'User ID is missing or unauthorized' });
+            return;
+        }
+
+        console.log('[getUserState] Fetching state for userId:', userId);
+
+        const userState = await userService.getUserState(userId);
+
+        console.log(`[getUserState] State for userId ${userId}:`, userState);
+        res.status(200).json(userState);
+    } catch (error) {
+        console.error('[getUserState] Internal server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};

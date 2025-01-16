@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isExistUser = exports.registerAsInstructor = exports.registerAsStudent = exports.registerUser = void 0;
+exports.getUserState = exports.isExistUser = exports.registerAsInstructor = exports.registerAsStudent = exports.registerUser = void 0;
 const userService_1 = require("../services/userService");
 // Register User
 const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -112,3 +112,23 @@ const isExistUser = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 exports.isExistUser = isExistUser;
+// Get User State
+const getUserState = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const userId = (_a = req.auth) === null || _a === void 0 ? void 0 : _a.userId;
+        if (!userId) {
+            res.status(403).json({ error: 'User ID is missing or unauthorized' });
+            return;
+        }
+        console.log('[getUserState] Fetching state for userId:', userId);
+        const userState = yield userService_1.userService.getUserState(userId);
+        console.log(`[getUserState] State for userId ${userId}:`, userState);
+        res.status(200).json(userState);
+    }
+    catch (error) {
+        console.error('[getUserState] Internal server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+exports.getUserState = getUserState;

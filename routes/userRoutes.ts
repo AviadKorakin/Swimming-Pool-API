@@ -4,6 +4,7 @@ import {
     registerAsStudent,
     registerAsInstructor,
     isExistUser,
+    getUserState
 } from '../controllers/userController';
 import { requireAuth } from '@clerk/express'; // Clerk middleware for authentication
 
@@ -129,5 +130,36 @@ router.post('/register/instructor', requireAuth(), registerAsInstructor);
  *         description: Internal server error
  */
 router.get('/exists', requireAuth(), isExistUser);
+
+
+/**
+ * @swagger
+ * /api/users/getState:
+ *   get:
+ *     summary: Get the state of the authenticated user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User state retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 state:
+ *                   type: integer
+ *                   description: User state (0 = not registered, 1 = student, 2 = instructor)
+ *                 id:
+ *                   type: string
+ *                   nullable: true
+ *                   description: The student or instructor ID, if applicable
+ *       403:
+ *         description: Forbidden - User ID missing or unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/getState', requireAuth(), getUserState);
 
 export default router;

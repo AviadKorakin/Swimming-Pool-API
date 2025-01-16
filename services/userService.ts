@@ -52,6 +52,28 @@ class UserService {
 
         return instructor;
     }
+    // Get user state based on userId
+    async getUserState(userId: string): Promise<{ state: number; id: string | null }> {
+        // Find the user by ID
+        const user = await User.findById(userId);
+
+        if (!user) {
+            // User not found, state 0
+            return { state: 0, id: null };
+        }
+
+        // Determine the state and ID based on the role
+        if (user.role === 'student' && user.student) {
+            return { state: 1, id: user.student.toString() };
+        } else if (user.role === 'instructor' && user.instructor) {
+            return { state: 2, id: user.instructor.toString() };
+        }
+
+        // User is registered but no associated role ID
+        return { state: 0, id: null };
+    }
 }
+
+
 
 export const userService = new UserService();

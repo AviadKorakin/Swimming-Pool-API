@@ -124,4 +124,33 @@ router.post('/register/instructor', (0, express_2.requireAuth)(), userController
  *         description: Internal server error
  */
 router.get('/exists', (0, express_2.requireAuth)(), userController_1.isExistUser);
+/**
+ * @swagger
+ * /api/users/getState:
+ *   get:
+ *     summary: Get the state of the authenticated user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User state retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 state:
+ *                   type: integer
+ *                   description: User state (0 = not registered, 1 = student, 2 = instructor)
+ *                 id:
+ *                   type: string
+ *                   nullable: true
+ *                   description: The student or instructor ID, if applicable
+ *       403:
+ *         description: Forbidden - User ID missing or unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/getState', (0, express_2.requireAuth)(), userController_1.getUserState);
 exports.default = router;
