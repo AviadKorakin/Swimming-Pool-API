@@ -100,4 +100,28 @@ router.post('/register/student', (0, express_2.requireAuth)(), userController_1.
  *         description: Internal server error
  */
 router.post('/register/instructor', (0, express_2.requireAuth)(), userController_1.registerAsInstructor);
+/**
+ * @swagger
+ * /api/users/exists:
+ *   get:
+ *     summary: Check if the authenticated user exists
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User existence check result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 exists:
+ *                   type: boolean
+ *       403:
+ *         description: Forbidden - User ID missing or unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/exists', (0, express_2.requireAuth)(), userController_1.isExistUser);
 exports.default = router;

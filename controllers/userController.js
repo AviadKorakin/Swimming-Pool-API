@@ -9,9 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.registerAsInstructor = exports.registerAsStudent = exports.registerUser = void 0;
+exports.isExistUser = exports.registerAsInstructor = exports.registerAsStudent = exports.registerUser = void 0;
 const userService_1 = require("../services/userService");
-// Register User
 // Register User
 const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -33,7 +32,11 @@ const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(201).json({ message: 'User registered successfully', user });
     }
     catch (error) {
-        if (error instanceof Error && error.message.includes('User already exists')) {
+        if (error.code === 11000) {
+            console.warn('[registerUser] Duplicate key error:', error.keyValue);
+            res.status(409).json({ error: 'User already exists with this ID' });
+        }
+        else if (error instanceof Error && error.message.includes('User already exists')) {
             console.warn('[registerUser] Conflict: User already exists');
             res.status(409).json({ error: error.message });
         }
@@ -89,3 +92,23 @@ const registerAsInstructor = (req, res) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.registerAsInstructor = registerAsInstructor;
+// Check if User Exists
+const isExistUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const userId = (_a = req.auth) === null || _a === void 0 ? void 0 : _a.userId;
+        if (!userId) {
+            res.status(403).json({ error: 'User ID is missing or unauthorized' });
+            return;
+        }
+        console.log('[isExistUser] Checking existence for userId:', userId);
+        const exists = yield userService_1.userService.isExists(userId);
+        console.log(`[isExistUser] User with ID ${userId} exists:`, exists);
+        res.status(200).json({ exists });
+    }
+    catch (error) {
+        console.error('[isExistUser] Internal server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+exports.isExistUser = isExistUser;

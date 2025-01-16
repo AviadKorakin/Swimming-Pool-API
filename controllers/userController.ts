@@ -4,7 +4,6 @@ import { IStudent } from '../models/student';
 import { IInstructor } from '../models/instructor';
 
 // Register User
-// Register User
 export const registerUser = async (
     req: Request<{}, {}, { role: 'student' | 'instructor' | 'admin' }>,
     res: Response<{ message: string; user?: unknown } | { error: string }>
@@ -31,8 +30,11 @@ export const registerUser = async (
         console.log('[registerUser] User registered successfully:', user);
 
         res.status(201).json({ message: 'User registered successfully', user });
-    } catch (error) {
-        if (error instanceof Error && error.message.includes('User already exists')) {
+    } catch (error: any) {
+        if (error.code === 11000) {
+            console.warn('[registerUser] Duplicate key error:', error.keyValue);
+            res.status(409).json({ error: 'User already exists with this ID' });
+        } else if (error instanceof Error && error.message.includes('User already exists')) {
             console.warn('[registerUser] Conflict: User already exists');
             res.status(409).json({ error: error.message });
         } else {
@@ -90,5 +92,29 @@ export const registerAsInstructor = async (
         } else {
             res.status(500).json({ error: 'Internal server error' });
         }
+    }
+};
+
+// Check if User Exists
+export const isExistUser = async (
+    req: Request,
+    res: Response<{ exists: boolean } | { error: string }>
+): Promise<void> => {
+    try {
+        const userId = req.auth?.userId;
+
+        if (!userId) {
+            res.status(403).json({ error: 'User ID is missing or unauthorized' });
+            return;
+        }
+        console.log('[isExistUser] Checking existence for userId:', userId);
+
+        const exists = await userService.isExists(userId);
+
+        console.log(`[isExistUser] User with ID ${userId} exists:`, exists);
+        res.status(200).json({ exists });
+    } catch (error) {
+        console.error('[isExistUser] Internal server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 };

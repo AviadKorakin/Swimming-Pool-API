@@ -14,13 +14,14 @@ const user_1 = require("../models/user");
 const student_1 = require("../models/student");
 const instructor_1 = require("../models/instructor");
 class UserService {
+    isExists(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return (yield user_1.User.exists({ _id: userId })) !== null;
+        });
+    }
     // Register User
     registerUser(userId, role) {
         return __awaiter(this, void 0, void 0, function* () {
-            const existingUser = yield user_1.User.findById(userId);
-            if (existingUser) {
-                throw new Error('User already exists.');
-            }
             const newUser = new user_1.User({
                 _id: userId,
                 role,

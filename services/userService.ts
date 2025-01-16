@@ -3,14 +3,13 @@ import { Student, IStudent } from '../models/student';
 import { Instructor, IInstructor } from '../models/instructor';
 
 class UserService {
+
+    async isExists(userId: string): Promise<boolean> {
+        return await User.exists({ _id: userId }) !== null;
+    }
+
     // Register User
     async registerUser(userId: string, role: 'student' | 'instructor' | 'admin'): Promise<IUser> {
-        const existingUser = await User.findById(userId);
-
-        if (existingUser) {
-            throw new Error('User already exists.');
-        }
-
         const newUser = new User({
             _id: userId,
             role,
