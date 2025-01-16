@@ -59,11 +59,33 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 
+// Async route wrapper for error forwarding
+const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+        fn(req, res, next).catch(next);
+    };
+};
+
+
 // Initialize Routes
 app.use('/api/students', studentRoutes);
 app.use('/api/instructors', instructorRoutes);
 app.use('/api/lessons', lessonRoutes);
 app.use('/api/users', userRoutes);
+
+
+// Centralized Error Handling Middleware
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    console.error('Error occurred:', err);
+
+    // Respond with the error details
+    res.status(err.status || 500).json({
+        error: {
+            message: err.message || 'Internal Server Error',
+            details: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+        },
+    });
+});
 
 // Setup Swagger UI
 setupSwagger(app);
