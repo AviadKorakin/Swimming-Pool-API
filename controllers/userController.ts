@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { userService } from '../services/userService';
 import { IStudent } from '../models/student';
 import { IInstructor } from '../models/instructor';
+import {AppError} from "../errors/AppError";
 
 // Register User
 export const registerUser = async (
@@ -31,7 +32,10 @@ export const registerUser = async (
 
         res.status(201).json({ message: 'User registered successfully', user });
     } catch (error: any) {
-        if (error.code === 11000) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else if (error.code === 11000) {
             console.warn('[registerUser] Duplicate key error:', error.keyValue);
             res.status(409).json({ error: 'User already exists with this ID' });
         } else if (error instanceof Error && error.message.includes('User already exists')) {
@@ -63,7 +67,10 @@ export const registerAsStudent = async (
         const student = await userService.registerAsStudent(userId, req.body);
         res.status(201).json(student);
     } catch (error) {
-        if (error instanceof Error && error.message.includes('User must have a role of student')) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else if (error instanceof Error && error.message.includes('User must have a role of student')) {
             res.status(403).json({ error: error.message });
         } else {
             res.status(500).json({ error: 'Internal server error' });
@@ -87,7 +94,10 @@ export const registerAsInstructor = async (
         const instructor = await userService.registerAsInstructor(userId, req.body);
         res.status(201).json(instructor);
     } catch (error) {
-        if (error instanceof Error && error.message.includes('User must have a role of instructor')) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else if (error instanceof Error && error.message.includes('User must have a role of instructor')) {
             res.status(403).json({ error: error.message });
         } else {
             res.status(500).json({ error: 'Internal server error' });
@@ -114,8 +124,13 @@ export const isExistUser = async (
         console.log(`[isExistUser] User with ID ${userId} exists:`, exists);
         res.status(200).json({ exists });
     } catch (error) {
-        console.error('[isExistUser] Internal server error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else {
+            console.error('[isExistUser] Internal server error:', error);
+            res.status(500).json({error: 'Internal server error'});
+        }
     }
 };
 // Get User State
@@ -138,7 +153,12 @@ export const getUserState = async (
         console.log(`[getUserState] State for userId ${userId}:`, userState);
         res.status(200).json(userState);
     } catch (error) {
-        console.error('[getUserState] Internal server error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else {
+            console.error('[getUserState] Internal server error:', error);
+            res.status(500).json({error: 'Internal server error'});
+        }
     }
 };

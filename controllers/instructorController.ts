@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { instructorService } from '../services/instructorService';
 import { IInstructor } from '../models/instructor';
+import {AppError} from "../errors/AppError";
 
 // Add an instructor
 export const addInstructor = async (
@@ -11,6 +12,10 @@ export const addInstructor = async (
         const instructor = await instructorService.addInstructor(req.body);
         res.status(201).json(instructor);
     } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
         res.status(400).json({
             error: error instanceof Error ? error.message : 'Failed to add instructor',
         });
@@ -31,6 +36,10 @@ export const updateInstructor = async (
         }
         res.status(200).json(updatedInstructor);
     } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
         res.status(400).json({
             error: error instanceof Error ? error.message : 'Failed to update instructor',
         });
@@ -51,6 +60,10 @@ export const removeInstructor = async (
         }
         res.status(200).json({ message: 'Instructor removed successfully' });
     } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
         res.status(400).json({
             error: error instanceof Error ? error.message : 'Failed to remove instructor',
         });
@@ -73,6 +86,10 @@ export const getAllInstructors = async (
         const result = await instructorService.getAllInstructors(Number(page), Number(limit));
         res.status(200).json(result);
     } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
         res.status(400).json({
             error: error instanceof Error ? error.message : 'Failed to retrieve instructors',
         });
@@ -93,6 +110,10 @@ export const getInstructorById = async (
         }
         res.status(200).json(instructor);
     } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
         res.status(400).json({
             error: error instanceof Error ? error.message : 'Failed to retrieve instructor',
         });
@@ -115,6 +136,10 @@ export const findAvailableInstructors = async (
         const instructors = await instructorService.findAvailableInstructors(day, time, styles);
         res.status(200).json(instructors);
     } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
         res.status(400).json({
             error: error instanceof Error ? error.message : 'Failed to find available instructors',
         });

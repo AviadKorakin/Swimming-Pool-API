@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.instructorService = void 0;
 const instructor_1 = require("../models/instructor");
+const AppError_1 = require("../errors/AppError");
 class InstructorService {
     // Add a new instructor with overlap validation
     addInstructor(instructorData) {
@@ -49,7 +50,7 @@ class InstructorService {
                 const current = hours[i];
                 const next = hours[i + 1];
                 if (current.end > next.start) {
-                    throw new Error(`Overlapping time ranges found on ${day}: ${current.start}-${current.end} overlaps with ${next.start}-${next.end}.`);
+                    throw new AppError_1.AppError(`Overlapping time ranges found on ${day}: ${current.start}-${current.end} overlaps with ${next.start}-${next.end}.`, 409);
                 }
             }
         }

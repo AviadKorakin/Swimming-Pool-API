@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.studentService = void 0;
 const student_1 = require("../models/student");
 const lesson_1 = require("../models/lesson");
+const AppError_1 = require("../errors/AppError");
 class StudentService {
     // Add a new student
     addStudent(studentData) {
@@ -97,22 +98,22 @@ class StudentService {
         return __awaiter(this, void 0, void 0, function* () {
             const lesson = yield lesson_1.Lesson.findById(lessonId);
             if (!lesson) {
-                throw new Error('Lesson not found');
+                throw new AppError_1.AppError('Lesson not found', 404);
             }
             const student = yield student_1.Student.findById(studentId);
             if (!student) {
-                throw new Error('Student not found');
+                throw new AppError_1.AppError('Student not found', 404);
             }
             // Check if the student is already assigned to the lesson
             if (lesson.students.some(id => id.toString() === student._id.toString())) {
-                throw new Error('Student is already assigned to this lesson');
+                throw new AppError_1.AppError('Student is already assigned to this lesson', 409);
             }
             // Ensure the lesson doesn't exceed its capacity
             const maxCapacity = lesson.type === 'group' ? 30 : 1; // 30 for group lessons, 1 for private lessons
             if (lesson.students.length >= maxCapacity) {
-                throw new Error(lesson.type === 'group'
+                throw new AppError_1.AppError(lesson.type === 'group'
                     ? 'Lesson is full (maximum 30 students allowed).'
-                    : 'Private lesson already has a student.');
+                    : 'Private lesson already has a student.', 409);
             }
             // Add the student to the lesson using their ObjectId
             lesson.students.push(student._id);
@@ -125,15 +126,15 @@ class StudentService {
         return __awaiter(this, void 0, void 0, function* () {
             const lesson = yield lesson_1.Lesson.findById(lessonId);
             if (!lesson) {
-                throw new Error('Lesson not found');
+                throw new AppError_1.AppError('Lesson not found', 404);
             }
             const student = yield student_1.Student.findById(studentId);
             if (!student) {
-                throw new Error('Student not found');
+                throw new AppError_1.AppError('Student not found', 404);
             }
             // Check if the student is assigned to the lesson
             if (!lesson.students.some(id => id.toString() === student._id.toString())) {
-                throw new Error('Student is not assigned to this lesson');
+                throw new AppError_1.AppError('Student is not assigned to this lesson', 409);
             }
             // Remove the student from the lesson
             lesson.students = lesson.students.filter(id => id.toString() !== student._id.toString());

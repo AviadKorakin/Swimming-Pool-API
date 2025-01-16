@@ -1,4 +1,5 @@
 import {DayOfWeek, IInstructor, Instructor} from '../models/instructor';
+import {AppError} from "../errors/AppError";
 
 class InstructorService {
     // Add a new instructor with overlap validation
@@ -47,8 +48,8 @@ class InstructorService {
                 const next = hours[i + 1];
 
                 if (current.end > next.start) {
-                    throw new Error(
-                        `Overlapping time ranges found on ${day}: ${current.start}-${current.end} overlaps with ${next.start}-${next.end}.`
+                    throw new AppError(
+                        `Overlapping time ranges found on ${day}: ${current.start}-${current.end} overlaps with ${next.start}-${next.end}.`,409
                     );
                 }
             }

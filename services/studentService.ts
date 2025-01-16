@@ -1,5 +1,6 @@
 import {Student, IStudent, StudentFilter} from '../models/student';
 import {Lesson} from "../models/lesson";
+import {AppError} from "../errors/AppError";
 class StudentService {
 
     // Add a new student
@@ -99,26 +100,26 @@ class StudentService {
     async assignStudentToLesson(studentId: string, lessonId: string): Promise<IStudent | null> {
         const lesson = await Lesson.findById(lessonId);
         if (!lesson) {
-            throw new Error('Lesson not found');
+            throw new AppError('Lesson not found',404);
         }
 
         const student = await Student.findById(studentId);
         if (!student) {
-            throw new Error('Student not found');
+            throw new AppError('Student not found',404);
         }
 
         // Check if the student is already assigned to the lesson
         if (lesson.students.some(id => id.toString() === student._id.toString())) {
-            throw new Error('Student is already assigned to this lesson');
+            throw new AppError('Student is already assigned to this lesson',409);
         }
 
         // Ensure the lesson doesn't exceed its capacity
         const maxCapacity = lesson.type === 'group' ? 30 : 1; // 30 for group lessons, 1 for private lessons
         if (lesson.students.length >= maxCapacity) {
-            throw new Error(
+            throw new AppError(
                 lesson.type === 'group'
                     ? 'Lesson is full (maximum 30 students allowed).'
-                    : 'Private lesson already has a student.'
+                    : 'Private lesson already has a student.',409
             );
         }
 
@@ -134,17 +135,17 @@ class StudentService {
     async removeStudentFromLesson(studentId: string, lessonId: string): Promise<IStudent | null> {
         const lesson = await Lesson.findById(lessonId);
         if (!lesson) {
-            throw new Error('Lesson not found');
+            throw new AppError('Lesson not found',404);
         }
 
         const student = await Student.findById(studentId);
         if (!student) {
-            throw new Error('Student not found');
+            throw new AppError('Student not found',404);
         }
 
         // Check if the student is assigned to the lesson
         if (!lesson.students.some(id => id.toString() === student._id.toString())) {
-            throw new Error('Student is not assigned to this lesson');
+            throw new AppError('Student is not assigned to this lesson',409);
         }
 
         // Remove the student from the lesson

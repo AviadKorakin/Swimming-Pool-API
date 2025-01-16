@@ -1,6 +1,7 @@
 import { Response,Request } from 'express';
 import { studentService } from '../services/studentService';
 import { IStudent, StudentFilter } from '../models/student';
+import {AppError} from "../errors/AppError";
 
 // Add a student
 export const addStudent = async (
@@ -11,7 +12,10 @@ export const addStudent = async (
         const student = await studentService.addStudent(req.body);
         res.status(201).json(student);
     } catch (error) {
-        if (error instanceof Error && error.message.includes('Validation failed')) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else if (error instanceof Error && error.message.includes('Validation failed')) {
             res.status(400).json({ error: 'Invalid student data' });
         } else {
             res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to add student' });
@@ -33,6 +37,10 @@ export const updateStudent = async (
         }
         res.status(200).json(updatedStudent);
     } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
         if (error instanceof Error && error.message.includes('Cast to ObjectId failed')) {
             res.status(400).json({ error: 'Invalid student ID format' });
         } else {
@@ -57,6 +65,10 @@ export const getStudentById = async (
 
         res.status(200).json(student);
     } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
         if (error instanceof Error && error.message.includes('Cast to ObjectId failed')) {
             res.status(400).json({ error: 'Invalid student ID format' });
         } else {
@@ -78,6 +90,10 @@ export const deleteStudent = async (
         }
         res.status(200).json({ message: 'Student deleted successfully' });
     } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
         if (error instanceof Error && error.message.includes('Cast to ObjectId failed')) {
             res.status(400).json({ error: 'Invalid student ID format' });
         } else {
@@ -135,6 +151,10 @@ export const listStudents = async (
             total: studentsResult.total,
         });
     } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
         res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to retrieve students' });
     }
 };
@@ -148,6 +168,10 @@ export const assignStudentToLesson = async (
         await studentService.assignStudentToLesson(studentId, lessonId);
         res.status(200).json({ message: 'Student successfully assigned to the lesson.' });
     } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
         res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to assign student to the lesson' });
     }
 };

@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.lessonService = void 0;
 const lesson_1 = require("../models/lesson");
+const AppError_1 = require("../errors/AppError");
 class LessonService {
     // Add a new lesson
     addLesson(lessonData) {
@@ -25,7 +26,7 @@ class LessonService {
         return __awaiter(this, void 0, void 0, function* () {
             const existingLesson = yield lesson_1.Lesson.findById(lessonId);
             if (!existingLesson) {
-                throw new Error('Lesson not found');
+                throw new AppError_1.AppError('Lesson not found', 404);
             }
             const startTime = updatedData.startTime || existingLesson.startTime;
             const endTime = updatedData.endTime || existingLesson.endTime;
@@ -74,7 +75,7 @@ class LessonService {
                 ],
             });
             if (overlappingLessons.length > 0) {
-                throw new Error('Lesson times overlap with another lesson for this instructor.');
+                throw new AppError_1.AppError('Lesson times overlap with another lesson for this instructor.', 409);
             }
         });
     }

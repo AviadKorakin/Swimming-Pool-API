@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUserState = exports.isExistUser = exports.registerAsInstructor = exports.registerAsStudent = exports.registerUser = void 0;
 const userService_1 = require("../services/userService");
+const AppError_1 = require("../errors/AppError");
 // Register User
 const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -32,7 +33,10 @@ const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(201).json({ message: 'User registered successfully', user });
     }
     catch (error) {
-        if (error.code === 11000) {
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else if (error.code === 11000) {
             console.warn('[registerUser] Duplicate key error:', error.keyValue);
             res.status(409).json({ error: 'User already exists with this ID' });
         }
@@ -61,7 +65,10 @@ const registerAsStudent = (req, res) => __awaiter(void 0, void 0, void 0, functi
         res.status(201).json(student);
     }
     catch (error) {
-        if (error instanceof Error && error.message.includes('User must have a role of student')) {
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else if (error instanceof Error && error.message.includes('User must have a role of student')) {
             res.status(403).json({ error: error.message });
         }
         else {
@@ -83,7 +90,10 @@ const registerAsInstructor = (req, res) => __awaiter(void 0, void 0, void 0, fun
         res.status(201).json(instructor);
     }
     catch (error) {
-        if (error instanceof Error && error.message.includes('User must have a role of instructor')) {
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else if (error instanceof Error && error.message.includes('User must have a role of instructor')) {
             res.status(403).json({ error: error.message });
         }
         else {
@@ -107,8 +117,13 @@ const isExistUser = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         res.status(200).json({ exists });
     }
     catch (error) {
-        console.error('[isExistUser] Internal server error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else {
+            console.error('[isExistUser] Internal server error:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
     }
 });
 exports.isExistUser = isExistUser;
@@ -127,8 +142,13 @@ const getUserState = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(200).json(userState);
     }
     catch (error) {
-        console.error('[getUserState] Internal server error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else {
+            console.error('[getUserState] Internal server error:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
     }
 });
 exports.getUserState = getUserState;

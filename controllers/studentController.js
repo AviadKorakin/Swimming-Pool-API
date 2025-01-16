@@ -22,6 +22,7 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.removeStudentFromLesson = exports.assignStudentToLesson = exports.listStudents = exports.findMatchingStudents = exports.deleteStudent = exports.getStudentById = exports.updateStudent = exports.addStudent = void 0;
 const studentService_1 = require("../services/studentService");
+const AppError_1 = require("../errors/AppError");
 // Add a student
 const addStudent = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -29,7 +30,10 @@ const addStudent = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         res.status(201).json(student);
     }
     catch (error) {
-        if (error instanceof Error && error.message.includes('Validation failed')) {
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else if (error instanceof Error && error.message.includes('Validation failed')) {
             res.status(400).json({ error: 'Invalid student data' });
         }
         else {
@@ -50,7 +54,10 @@ const updateStudent = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.status(200).json(updatedStudent);
     }
     catch (error) {
-        if (error instanceof Error && error.message.includes('Cast to ObjectId failed')) {
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else if (error instanceof Error && error.message.includes('Cast to ObjectId failed')) {
             res.status(400).json({ error: 'Invalid student ID format' });
         }
         else {
@@ -71,7 +78,10 @@ const getStudentById = (req, res) => __awaiter(void 0, void 0, void 0, function*
         res.status(200).json(student);
     }
     catch (error) {
-        if (error instanceof Error && error.message.includes('Cast to ObjectId failed')) {
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else if (error instanceof Error && error.message.includes('Cast to ObjectId failed')) {
             res.status(400).json({ error: 'Invalid student ID format' });
         }
         else {
@@ -92,7 +102,10 @@ const deleteStudent = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.status(200).json({ message: 'Student deleted successfully' });
     }
     catch (error) {
-        if (error instanceof Error && error.message.includes('Cast to ObjectId failed')) {
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else if (error instanceof Error && error.message.includes('Cast to ObjectId failed')) {
             res.status(400).json({ error: 'Invalid student ID format' });
         }
         else {
@@ -140,7 +153,11 @@ const listStudents = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         });
     }
     catch (error) {
-        res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to retrieve students' });
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
+            res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to retrieve students' });
     }
 });
 exports.listStudents = listStudents;
@@ -152,7 +169,11 @@ const assignStudentToLesson = (req, res) => __awaiter(void 0, void 0, void 0, fu
         res.status(200).json({ message: 'Student successfully assigned to the lesson.' });
     }
     catch (error) {
-        res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to assign student to the lesson' });
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
+            res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to assign student to the lesson' });
     }
 });
 exports.assignStudentToLesson = assignStudentToLesson;

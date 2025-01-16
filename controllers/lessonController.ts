@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { lessonService } from '../services/lessonService';
 import { ILesson, LessonFilter } from '../models/lesson';
+import {AppError} from "../errors/AppError";
 
 // Add a new lesson
 export const addLesson = async (
@@ -11,6 +12,10 @@ export const addLesson = async (
         const lesson = await lessonService.addLesson(req.body);
         res.status(201).json(lesson);
     } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
         res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to add lesson' });
     }
 };
@@ -29,6 +34,10 @@ export const updateLesson = async (
         }
         res.status(200).json(updatedLesson);
     } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
         res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to update lesson' });
     }
 };
@@ -47,6 +56,10 @@ export const removeLesson = async (
         }
         res.status(200).json({ message: 'Lesson removed successfully' });
     } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
         res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to remove lesson' });
     }
 };
@@ -67,6 +80,10 @@ export const getAllLessons = async (
         const result = await lessonService.getAllLessons(filters, Number(page), Number(limit));
         res.status(200).json(result);
     } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
         res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to retrieve lessons' });
     }
 };

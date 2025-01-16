@@ -1,5 +1,6 @@
 import {ILesson, Lesson, LessonFilter} from '../models/lesson';
 import mongoose from 'mongoose';
+import {AppError} from "../errors/AppError";
 
 class LessonService {
     // Add a new lesson
@@ -21,7 +22,7 @@ class LessonService {
     ): Promise<ILesson | null> {
         const existingLesson = await Lesson.findById(lessonId);
         if (!existingLesson) {
-            throw new Error('Lesson not found');
+            throw new AppError('Lesson not found',404);
         }
 
         const startTime = updatedData.startTime || existingLesson.startTime;
@@ -88,8 +89,8 @@ class LessonService {
         });
 
         if (overlappingLessons.length > 0) {
-            throw new Error(
-                'Lesson times overlap with another lesson for this instructor.'
+            throw new AppError(
+                'Lesson times overlap with another lesson for this instructor.',409
             );
         }
     }

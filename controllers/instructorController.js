@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.findAvailableInstructors = exports.getInstructorById = exports.getAllInstructors = exports.removeInstructor = exports.updateInstructor = exports.addInstructor = void 0;
 const instructorService_1 = require("../services/instructorService");
+const AppError_1 = require("../errors/AppError");
 // Add an instructor
 const addInstructor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -18,9 +19,13 @@ const addInstructor = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.status(201).json(instructor);
     }
     catch (error) {
-        res.status(400).json({
-            error: error instanceof Error ? error.message : 'Failed to add instructor',
-        });
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
+            res.status(400).json({
+                error: error instanceof Error ? error.message : 'Failed to add instructor',
+            });
     }
 });
 exports.addInstructor = addInstructor;
@@ -36,9 +41,13 @@ const updateInstructor = (req, res) => __awaiter(void 0, void 0, void 0, functio
         res.status(200).json(updatedInstructor);
     }
     catch (error) {
-        res.status(400).json({
-            error: error instanceof Error ? error.message : 'Failed to update instructor',
-        });
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
+            res.status(400).json({
+                error: error instanceof Error ? error.message : 'Failed to update instructor',
+            });
     }
 });
 exports.updateInstructor = updateInstructor;
@@ -54,9 +63,13 @@ const removeInstructor = (req, res) => __awaiter(void 0, void 0, void 0, functio
         res.status(200).json({ message: 'Instructor removed successfully' });
     }
     catch (error) {
-        res.status(400).json({
-            error: error instanceof Error ? error.message : 'Failed to remove instructor',
-        });
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
+            res.status(400).json({
+                error: error instanceof Error ? error.message : 'Failed to remove instructor',
+            });
     }
 });
 exports.removeInstructor = removeInstructor;
@@ -72,9 +85,13 @@ const getAllInstructors = (req, res) => __awaiter(void 0, void 0, void 0, functi
         res.status(200).json(result);
     }
     catch (error) {
-        res.status(400).json({
-            error: error instanceof Error ? error.message : 'Failed to retrieve instructors',
-        });
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
+            res.status(400).json({
+                error: error instanceof Error ? error.message : 'Failed to retrieve instructors',
+            });
     }
 });
 exports.getAllInstructors = getAllInstructors;
@@ -90,9 +107,13 @@ const getInstructorById = (req, res) => __awaiter(void 0, void 0, void 0, functi
         res.status(200).json(instructor);
     }
     catch (error) {
-        res.status(400).json({
-            error: error instanceof Error ? error.message : 'Failed to retrieve instructor',
-        });
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
+            res.status(400).json({
+                error: error instanceof Error ? error.message : 'Failed to retrieve instructor',
+            });
     }
 });
 exports.getInstructorById = getInstructorById;
@@ -108,9 +129,13 @@ const findAvailableInstructors = (req, res) => __awaiter(void 0, void 0, void 0,
         res.status(200).json(instructors);
     }
     catch (error) {
-        res.status(400).json({
-            error: error instanceof Error ? error.message : 'Failed to find available instructors',
-        });
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
+            res.status(400).json({
+                error: error instanceof Error ? error.message : 'Failed to find available instructors',
+            });
     }
 });
 exports.findAvailableInstructors = findAvailableInstructors;

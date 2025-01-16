@@ -13,6 +13,7 @@ exports.userService = void 0;
 const user_1 = require("../models/user");
 const studentService_1 = require("./studentService");
 const instructorService_1 = require("./instructorService");
+const AppError_1 = require("../errors/AppError");
 class UserService {
     isExists(userId) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -36,7 +37,7 @@ class UserService {
     registerAsStudent(userId, studentData) {
         return __awaiter(this, void 0, void 0, function* () {
             if (yield this.isExists(userId))
-                throw Error("user exists already registered");
+                throw new AppError_1.AppError('User already exists with this ID', 409);
             const student = yield studentService_1.studentService.addStudent(studentData);
             const newUser = new user_1.User({
                 _id: userId,
@@ -52,7 +53,7 @@ class UserService {
     registerAsInstructor(userId, instructorData) {
         return __awaiter(this, void 0, void 0, function* () {
             if (yield this.isExists(userId))
-                throw Error("user exists already registered");
+                throw new AppError_1.AppError('User already exists with this ID', 409);
             const instructor = yield instructorService_1.instructorService.addInstructor(instructorData);
             const newUser = new user_1.User({
                 _id: userId,

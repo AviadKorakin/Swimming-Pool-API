@@ -22,6 +22,7 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAllLessons = exports.removeLesson = exports.updateLesson = exports.addLesson = void 0;
 const lessonService_1 = require("../services/lessonService");
+const AppError_1 = require("../errors/AppError");
 // Add a new lesson
 const addLesson = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -29,7 +30,11 @@ const addLesson = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(201).json(lesson);
     }
     catch (error) {
-        res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to add lesson' });
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
+            res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to add lesson' });
     }
 });
 exports.addLesson = addLesson;
@@ -45,7 +50,11 @@ const updateLesson = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(200).json(updatedLesson);
     }
     catch (error) {
-        res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to update lesson' });
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
+            res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to update lesson' });
     }
 });
 exports.updateLesson = updateLesson;
@@ -61,7 +70,11 @@ const removeLesson = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(200).json({ message: 'Lesson removed successfully' });
     }
     catch (error) {
-        res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to remove lesson' });
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
+            res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to remove lesson' });
     }
 });
 exports.removeLesson = removeLesson;
@@ -77,7 +90,11 @@ const getAllLessons = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.status(200).json(result);
     }
     catch (error) {
-        res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to retrieve lessons' });
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else
+            res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to retrieve lessons' });
     }
 });
 exports.getAllLessons = getAllLessons;

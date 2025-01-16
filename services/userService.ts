@@ -3,6 +3,7 @@ import { IStudent } from '../models/student';
 import { IInstructor } from '../models/instructor';
 import {studentService} from './studentService';
 import {instructorService} from "./instructorService";
+import {AppError} from "../errors/AppError";
 
 class UserService {
 
@@ -25,7 +26,7 @@ class UserService {
 
     // Register as Student
     async registerAsStudent(userId: string, studentData: Omit<IStudent, '_id'>): Promise<IStudent> {
-        if(await this.isExists(userId)) throw Error("user exists already registered");
+        if(await this.isExists(userId)) throw new AppError('User already exists with this ID', 409);
         const student  = await studentService.addStudent(studentData);
         const newUser = new User({
             _id: userId,
@@ -40,7 +41,7 @@ class UserService {
 
     // Register as Instructor
     async registerAsInstructor(userId: string, instructorData: Omit<IInstructor, '_id'>): Promise<IInstructor> {
-        if(await this.isExists(userId)) throw Error("user exists already registered");
+        if(await this.isExists(userId)) throw new AppError('User already exists with this ID', 409);
         const instructor =  await instructorService.addInstructor(instructorData);
 
         const newUser = new User({
