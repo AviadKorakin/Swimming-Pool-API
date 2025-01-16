@@ -6,8 +6,7 @@ import {
     isExistUser,
     getUserState
 } from '../controllers/userController';
-import { requireAuth } from '@clerk/express';
-import requireAuthWithErrorHandler from "../middlewares"; // Clerk middleware for authentication
+import {requireAuth} from "@clerk/express";
 
 const router = express.Router();
 
@@ -49,7 +48,7 @@ const router = express.Router();
  *       500:
  *         description: Internal server error
  */
-router.post('/register', requireAuthWithErrorHandler(), registerUser);
+router.post('/register', requireAuth(), registerUser);
 
 /**
  * @swagger
@@ -77,7 +76,7 @@ router.post('/register', requireAuthWithErrorHandler(), registerUser);
  *       500:
  *         description: Internal server error
  */
-router.post('/register/student', requireAuthWithErrorHandler(), registerAsStudent);
+router.post('/register/student', requireAuth(), registerAsStudent);
 
 /**
  * @swagger
@@ -105,7 +104,7 @@ router.post('/register/student', requireAuthWithErrorHandler(), registerAsStuden
  *       500:
  *         description: Internal server error
  */
-router.post('/register/instructor', requireAuthWithErrorHandler(), registerAsInstructor);
+router.post('/register/instructor', requireAuth(), registerAsInstructor);
 
 /**
  * @swagger
@@ -130,7 +129,7 @@ router.post('/register/instructor', requireAuthWithErrorHandler(), registerAsIns
  *       500:
  *         description: Internal server error
  */
-router.get('/exists', requireAuthWithErrorHandler(), isExistUser);
+router.get('/exists', requireAuth(), isExistUser);
 
 
 /**
@@ -161,6 +160,6 @@ router.get('/exists', requireAuthWithErrorHandler(), isExistUser);
  *       500:
  *         description: Internal server error
  */
-router.get('/getState', requireAuthWithErrorHandler(), getUserState);
+router.get('/getState', requireAuth(), getUserState);
 
 export default router;

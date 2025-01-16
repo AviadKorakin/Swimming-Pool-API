@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const userController_1 = require("../controllers/userController");
-const middlewares_1 = __importDefault(require("../middlewares")); // Clerk middleware for authentication
+const express_2 = require("@clerk/express");
 const router = express_1.default.Router();
 /**
  * @swagger
@@ -45,7 +45,7 @@ const router = express_1.default.Router();
  *       500:
  *         description: Internal server error
  */
-router.post('/register', (0, middlewares_1.default)(), userController_1.registerUser);
+router.post('/register', (0, express_2.requireAuth)(), userController_1.registerUser);
 /**
  * @swagger
  * /api/users/register/student:
@@ -72,7 +72,7 @@ router.post('/register', (0, middlewares_1.default)(), userController_1.register
  *       500:
  *         description: Internal server error
  */
-router.post('/register/student', (0, middlewares_1.default)(), userController_1.registerAsStudent);
+router.post('/register/student', (0, express_2.requireAuth)(), userController_1.registerAsStudent);
 /**
  * @swagger
  * /api/users/register/instructor:
@@ -99,7 +99,7 @@ router.post('/register/student', (0, middlewares_1.default)(), userController_1.
  *       500:
  *         description: Internal server error
  */
-router.post('/register/instructor', (0, middlewares_1.default)(), userController_1.registerAsInstructor);
+router.post('/register/instructor', (0, express_2.requireAuth)(), userController_1.registerAsInstructor);
 /**
  * @swagger
  * /api/users/exists:
@@ -123,7 +123,7 @@ router.post('/register/instructor', (0, middlewares_1.default)(), userController
  *       500:
  *         description: Internal server error
  */
-router.get('/exists', (0, middlewares_1.default)(), userController_1.isExistUser);
+router.get('/exists', (0, express_2.requireAuth)(), userController_1.isExistUser);
 /**
  * @swagger
  * /api/users/getState:
@@ -152,5 +152,5 @@ router.get('/exists', (0, middlewares_1.default)(), userController_1.isExistUser
  *       500:
  *         description: Internal server error
  */
-router.get('/getState', (0, middlewares_1.default)(), userController_1.getUserState);
+router.get('/getState', (0, express_2.requireAuth)(), userController_1.getUserState);
 exports.default = router;

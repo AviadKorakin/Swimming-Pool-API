@@ -1,6 +1,6 @@
 import { User, IUser } from '../models/user';
-import { Student, IStudent } from '../models/student';
-import { Instructor, IInstructor } from '../models/instructor';
+import { IStudent } from '../models/student';
+import { IInstructor } from '../models/instructor';
 import {studentService} from './studentService';
 import {instructorService} from "./instructorService";
 
