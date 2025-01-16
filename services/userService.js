@@ -72,17 +72,19 @@ class UserService {
             const user = yield user_1.User.findById(userId);
             if (!user) {
                 // User not found, state 0
-                return { state: 0, id: null };
+                return { state: 0, details: null };
             }
-            // Determine the state and ID based on the role
+            // Determine the state and fetch details based on the role
             if (user.role === 'student' && user.student) {
-                return { state: 1, id: user.student.toString() };
+                const student = yield studentService_1.studentService.getStudentById(user.student.toString());
+                return { state: 1, details: student || null }; // Return student details
             }
             else if (user.role === 'instructor' && user.instructor) {
-                return { state: 2, id: user.instructor.toString() };
+                const instructor = yield instructorService_1.instructorService.getInstructorById(user.instructor.toString());
+                return { state: 2, details: instructor || null }; // Return instructor details
             }
             // User is registered but no associated role ID
-            return { state: 0, id: null };
+            return { state: 0, details: null };
         });
     }
 }

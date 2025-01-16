@@ -8,7 +8,7 @@ import {AppError} from "../errors/AppError";
 class UserService {
 
     async isExists(userId: string): Promise<boolean> {
-        return await User.exists({ _id: userId }) !== null;
+        return await User.exists({_id: userId}) !== null;
     }
 
     // Register User
@@ -26,8 +26,8 @@ class UserService {
 
     // Register as Student
     async registerAsStudent(userId: string, studentData: Omit<IStudent, '_id'>): Promise<IStudent> {
-        if(await this.isExists(userId)) throw new AppError('User already exists with this ID', 409);
-        const student  = await studentService.addStudent(studentData);
+        if (await this.isExists(userId)) throw new AppError('User already exists with this ID', 409);
+        const student = await studentService.addStudent(studentData);
         const newUser = new User({
             _id: userId,
             role: 'student',
@@ -41,8 +41,8 @@ class UserService {
 
     // Register as Instructor
     async registerAsInstructor(userId: string, instructorData: Omit<IInstructor, '_id'>): Promise<IInstructor> {
-        if(await this.isExists(userId)) throw new AppError('User already exists with this ID', 409);
-        const instructor =  await instructorService.addInstructor(instructorData);
+        if (await this.isExists(userId)) throw new AppError('User already exists with this ID', 409);
+        const instructor = await instructorService.addInstructor(instructorData);
 
         const newUser = new User({
             _id: userId,
@@ -54,28 +54,30 @@ class UserService {
 
         return instructor;
     }
+
     // Get user state based on userId
-    async getUserState(userId: string): Promise<{ state: number; id: string | null }> {
+    async getUserState(userId: string): Promise<{ state: number; details: IStudent | IInstructor | null }> {
         // Find the user by ID
         const user = await User.findById(userId);
 
         if (!user) {
             // User not found, state 0
-            return { state: 0, id: null };
+            return {state: 0, details: null};
         }
 
-        // Determine the state and ID based on the role
+        // Determine the state and fetch details based on the role
         if (user.role === 'student' && user.student) {
-            return { state: 1, id: user.student.toString() };
+            const student = await studentService.getStudentById(user.student.toString());
+            return {state: 1, details: student || null}; // Return student details
         } else if (user.role === 'instructor' && user.instructor) {
-            return { state: 2, id: user.instructor.toString() };
+            const instructor = await instructorService.getInstructorById(user.instructor.toString());
+            return {state: 2, details: instructor || null}; // Return instructor details
         }
 
         // User is registered but no associated role ID
-        return { state: 0, id: null };
+        return {state: 0, details: null};
     }
 }
-
 
 
 export const userService = new UserService();

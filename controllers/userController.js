@@ -142,13 +142,8 @@ const getUserState = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(200).json(userState);
     }
     catch (error) {
-        if (error instanceof AppError_1.AppError) {
-            res.status(error.statusCode).json({ error: error.message });
-        }
-        else {
-            console.error('[getUserState] Internal server error:', error);
-            res.status(500).json({ error: 'Internal server error' });
-        }
+        console.error('[getUserState] Internal server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 exports.getUserState = getUserState;

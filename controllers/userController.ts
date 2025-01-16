@@ -136,7 +136,7 @@ export const isExistUser = async (
 // Get User State
 export const getUserState = async (
     req: Request,
-    res: Response<{ state: number; id: string | null } | { error: string }>
+    res: Response<{ state: number; details: IStudent | IInstructor | null } | { error: string }>
 ): Promise<void> => {
     try {
         const userId = req.auth?.userId;
@@ -153,12 +153,7 @@ export const getUserState = async (
         console.log(`[getUserState] State for userId ${userId}:`, userState);
         res.status(200).json(userState);
     } catch (error) {
-        if (error instanceof AppError) {
-            res.status(error.statusCode).json({ error: error.message });
-        }
-        else {
-            console.error('[getUserState] Internal server error:', error);
-            res.status(500).json({error: 'Internal server error'});
-        }
+        console.error('[getUserState] Internal server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 };

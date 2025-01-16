@@ -136,13 +136,13 @@ router.get('/exists', requireAuth(), isExistUser);
  * @swagger
  * /api/users/getState:
  *   get:
- *     summary: Get the state of the authenticated user
+ *     summary: Get the state and details of the authenticated user
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: User state retrieved successfully
+ *         description: User state and details retrieved successfully
  *         content:
  *           application/json:
  *             schema:
@@ -151,10 +151,13 @@ router.get('/exists', requireAuth(), isExistUser);
  *                 state:
  *                   type: integer
  *                   description: User state (0 = not registered, 1 = student, 2 = instructor)
- *                 id:
- *                   type: string
+ *                 details:
+ *                   type: object
  *                   nullable: true
- *                   description: The student or instructor ID, if applicable
+ *                   description: The details of the student or instructor, if applicable
+ *                   oneOf:
+ *                     - $ref: '#/components/schemas/StudentResponse'
+ *                     - $ref: '#/components/schemas/InstructorResponse'
  *       403:
  *         description: Forbidden - User ID missing or unauthorized
  *       500:
