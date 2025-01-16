@@ -12,26 +12,37 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerAsInstructor = exports.registerAsStudent = exports.registerUser = void 0;
 const userService_1 = require("../services/userService");
 // Register User
+// Register User
 const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
+    console.log('[registerUser] Start processing request');
     try {
         const userId = (_a = req.auth) === null || _a === void 0 ? void 0 : _a.userId;
         const { role } = req.body;
+        console.log('[registerUser] Received request data:', { userId, role });
+        // Validate input
         if (!userId || !role) {
+            console.error('[registerUser] Validation failed: User ID or role is missing');
             res.status(400).json({ error: 'User ID and role are required' });
             return;
         }
+        console.log('[registerUser] Input is valid, proceeding to register user');
+        // Register the user using the service
         const user = yield userService_1.userService.registerUser(userId, role);
+        console.log('[registerUser] User registered successfully:', user);
         res.status(201).json({ message: 'User registered successfully', user });
     }
     catch (error) {
         if (error instanceof Error && error.message.includes('User already exists')) {
+            console.warn('[registerUser] Conflict: User already exists');
             res.status(409).json({ error: error.message });
         }
         else {
+            console.error('[registerUser] Internal server error:', error);
             res.status(500).json({ error: 'Internal server error' });
         }
     }
+    console.log('[registerUser] End processing request');
 });
 exports.registerUser = registerUser;
 // Register as Student
