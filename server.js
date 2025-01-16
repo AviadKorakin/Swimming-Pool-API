@@ -24,6 +24,7 @@ const instructorRoutes_1 = __importDefault(require("./routes/instructorRoutes"))
 const lessonRoutes_1 = __importDefault(require("./routes/lessonRoutes"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const cors_1 = __importDefault(require("cors"));
+const axios_1 = __importDefault(require("axios"));
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
 let server; // To store the server instance
@@ -65,6 +66,10 @@ app.use((req, res, next) => {
     }
     next();
 });
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'OK', message: 'Server is healthy' });
+});
 // Initialize Routes
 app.use('/api/students', studentRoutes_1.default);
 app.use('/api/instructors', instructorRoutes_1.default);
@@ -80,8 +85,20 @@ const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
         yield (0, db_atlas_1.connectDBAtlas)(); // Connect to the database using the new function
         console.log('Starting Express server...');
         server = app.listen(PORT, () => {
-            console.log(`Server is running on http://localhost:${PORT}`);
+            console.log(`Server is running on https://swimming-pool-api.onrender.com`);
         });
+        // Self-ping every 12 minutes
+        const selfPingInterval = 12 * 60 * 1000; // 12 minutes in milliseconds
+        setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
+            try {
+                console.log('Pinging server health endpoint...');
+                const response = yield axios_1.default.get(`https://swimming-pool-api.onrender.com/health`);
+                console.log('Ping response:', response.data);
+            }
+            catch (err) {
+                console.error('Error pinging health endpoint:', err instanceof Error ? err.message : err);
+            }
+        }), selfPingInterval);
     }
     catch (err) {
         console.error('Failed to start the server:', err instanceof Error ? err.message : err);

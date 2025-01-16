@@ -177,7 +177,7 @@ const options = {
         },
         servers: [
             {
-                url: 'http://localhost:5000/',
+                url: 'https://swimming-pool-api.onrender.com/',
                 description: 'Local server',
             },
         ],

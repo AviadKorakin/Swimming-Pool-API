@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { instructorService } from '../services/instructorService';
 import { IInstructor } from '../models/instructor';
 import {AppError} from "../errors/AppError";
+import mongoose from "mongoose";
 
 // Add an instructor
 export const addInstructor = async (
@@ -15,7 +16,12 @@ export const addInstructor = async (
         if (error instanceof AppError) {
             res.status(error.statusCode).json({ error: error.message });
         }
-        else
+        else if (error instanceof mongoose.Error.ValidationError && error.name === 'ValidationError') {
+            // Handle Mongoose validation errors
+            res.status(400).json({
+                error: `Validation Error: ${error.message}`,
+            });
+        } else
         res.status(400).json({
             error: error instanceof Error ? error.message : 'Failed to add instructor',
         });

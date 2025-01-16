@@ -8,10 +8,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.findAvailableInstructors = exports.getInstructorById = exports.getAllInstructors = exports.removeInstructor = exports.updateInstructor = exports.addInstructor = void 0;
 const instructorService_1 = require("../services/instructorService");
 const AppError_1 = require("../errors/AppError");
+const mongoose_1 = __importDefault(require("mongoose"));
 // Add an instructor
 const addInstructor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -21,6 +25,12 @@ const addInstructor = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     catch (error) {
         if (error instanceof AppError_1.AppError) {
             res.status(error.statusCode).json({ error: error.message });
+        }
+        else if (error instanceof mongoose_1.default.Error.ValidationError && error.name === 'ValidationError') {
+            // Handle Mongoose validation errors
+            res.status(400).json({
+                error: `Validation Error: ${error.message}`,
+            });
         }
         else
             res.status(400).json({

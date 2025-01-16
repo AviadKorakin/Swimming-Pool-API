@@ -10,6 +10,7 @@ import instructorRoutes from './routes/instructorRoutes';
 import lessonRoutes from './routes/lessonRoutes';
 import userRoutes from './routes/userRoutes';
 import cors from 'cors'
+import axios from 'axios';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -58,6 +59,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     next();
 });
 
+// Health check endpoint
+app.get('/health', (req: Request, res: Response) => {
+    res.status(200).json({ status: 'OK', message: 'Server is healthy' });
+});
 
 // Initialize Routes
 app.use('/api/students', studentRoutes);
@@ -77,8 +82,19 @@ const startServer = async (): Promise<void> => {
 
         console.log('Starting Express server...');
         server = app.listen(PORT, () => {
-            console.log(`Server is running on http://localhost:${PORT}`);
+            console.log(`Server is running on https://swimming-pool-api.onrender.com`);
         });
+        // Self-ping every 12 minutes
+        const selfPingInterval = 12 * 60 * 1000; // 12 minutes in milliseconds
+        setInterval(async () => {
+            try {
+                console.log('Pinging server health endpoint...');
+                const response = await axios.get(`https://swimming-pool-api.onrender.com/health`);
+                console.log('Ping response:', response.data);
+            } catch (err) {
+                console.error('Error pinging health endpoint:', err instanceof Error ? err.message : err);
+            }
+        }, selfPingInterval);
     } catch (err) {
         console.error('Failed to start the server:', err instanceof Error ? err.message : err);
         process.exit(1); // Exit the process if there’s an error
