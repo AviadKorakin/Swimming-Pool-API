@@ -1,6 +1,8 @@
 import { User, IUser } from '../models/user';
 import { Student, IStudent } from '../models/student';
 import { Instructor, IInstructor } from '../models/instructor';
+import {studentService} from './studentService';
+import {instructorService} from "./instructorService";
 
 class UserService {
 
@@ -23,32 +25,29 @@ class UserService {
 
     // Register as Student
     async registerAsStudent(userId: string, studentData: Omit<IStudent, '_id'>): Promise<IStudent> {
-        const user = await User.findById(userId);
-        if (!user || user.role !== 'student') {
-            throw new Error('User must have a role of student to register as student.');
-        }
-
-        const student = new Student(studentData);
-        await student.save();
-
-        user.student = student._id;
-        await user.save();
+        const student  = await studentService.addStudent(studentData);
+        const newUser = new User({
+            _id: userId,
+            role: 'student',
+            instructor: null,
+            student: student._id,
+        });
+        await newUser.save();
 
         return student;
     }
 
     // Register as Instructor
     async registerAsInstructor(userId: string, instructorData: Omit<IInstructor, '_id'>): Promise<IInstructor> {
-        const user = await User.findById(userId);
-        if (!user || user.role !== 'instructor') {
-            throw new Error('User must have a role of instructor to register as instructor.');
-        }
+        const instructor =  await instructorService.addInstructor(instructorData);
 
-        const instructor = new Instructor(instructorData);
-        await instructor.save();
-
-        user.instructor = instructor._id;
-        await user.save();
+        const newUser = new User({
+            _id: userId,
+            role: 'instructor',
+            instructor: instructor._id,
+            student: null,
+        });
+        await newUser.save();
 
         return instructor;
     }

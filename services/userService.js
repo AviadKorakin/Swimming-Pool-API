@@ -11,8 +11,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userService = void 0;
 const user_1 = require("../models/user");
-const student_1 = require("../models/student");
-const instructor_1 = require("../models/instructor");
+const studentService_1 = require("./studentService");
+const instructorService_1 = require("./instructorService");
 class UserService {
     isExists(userId) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -35,28 +35,28 @@ class UserService {
     // Register as Student
     registerAsStudent(userId, studentData) {
         return __awaiter(this, void 0, void 0, function* () {
-            const user = yield user_1.User.findById(userId);
-            if (!user || user.role !== 'student') {
-                throw new Error('User must have a role of student to register as student.');
-            }
-            const student = new student_1.Student(studentData);
-            yield student.save();
-            user.student = student._id;
-            yield user.save();
+            const student = yield studentService_1.studentService.addStudent(studentData);
+            const newUser = new user_1.User({
+                _id: userId,
+                role: 'student',
+                instructor: null,
+                student: student._id,
+            });
+            yield newUser.save();
             return student;
         });
     }
     // Register as Instructor
     registerAsInstructor(userId, instructorData) {
         return __awaiter(this, void 0, void 0, function* () {
-            const user = yield user_1.User.findById(userId);
-            if (!user || user.role !== 'instructor') {
-                throw new Error('User must have a role of instructor to register as instructor.');
-            }
-            const instructor = new instructor_1.Instructor(instructorData);
-            yield instructor.save();
-            user.instructor = instructor._id;
-            yield user.save();
+            const instructor = yield instructorService_1.instructorService.addInstructor(instructorData);
+            const newUser = new user_1.User({
+                _id: userId,
+                role: 'instructor',
+                instructor: instructor._id,
+                student: null,
+            });
+            yield newUser.save();
             return instructor;
         });
     }
