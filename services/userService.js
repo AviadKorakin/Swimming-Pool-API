@@ -35,6 +35,8 @@ class UserService {
     // Register as Student
     registerAsStudent(userId, studentData) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (yield this.isExists(userId))
+                throw Error("user exists already registered");
             const student = yield studentService_1.studentService.addStudent(studentData);
             const newUser = new user_1.User({
                 _id: userId,
@@ -49,6 +51,8 @@ class UserService {
     // Register as Instructor
     registerAsInstructor(userId, instructorData) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (yield this.isExists(userId))
+                throw Error("user exists already registered");
             const instructor = yield instructorService_1.instructorService.addInstructor(instructorData);
             const newUser = new user_1.User({
                 _id: userId,

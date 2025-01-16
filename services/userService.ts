@@ -25,6 +25,7 @@ class UserService {
 
     // Register as Student
     async registerAsStudent(userId: string, studentData: Omit<IStudent, '_id'>): Promise<IStudent> {
+        if(await this.isExists(userId)) throw Error("user exists already registered");
         const student  = await studentService.addStudent(studentData);
         const newUser = new User({
             _id: userId,
@@ -39,6 +40,7 @@ class UserService {
 
     // Register as Instructor
     async registerAsInstructor(userId: string, instructorData: Omit<IInstructor, '_id'>): Promise<IInstructor> {
+        if(await this.isExists(userId)) throw Error("user exists already registered");
         const instructor =  await instructorService.addInstructor(instructorData);
 
         const newUser = new User({
