@@ -16,7 +16,6 @@ export type DayOfWeek =
     | 'Saturday'
     | 'Sunday';
 
-const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/; // Validates time in HH:mm format
 
 const InstructorSchema: Schema = new Schema({
     name: { type: String, required: true },
