@@ -8,7 +8,9 @@ export const connectDBAtlas = async (): Promise<void> => {
         const mongoAtlasURI: string | undefined = process.env.MONGO_ATLAS_URI;
 
         if (!mongoAtlasURI) {
-            throw new Error('MONGO_ATLAS_URI is not defined in the environment variables');
+            console.error('Error setting up MongoDB Atlas:' +
+                'MONGO_ATLAS_URI is not defined in the environment variables');
+            process.exit(1); // Exit on failure
         }
         console.log('Connecting to MongoDB Atlas...');
         await mongoose.connect(mongoAtlasURI);
