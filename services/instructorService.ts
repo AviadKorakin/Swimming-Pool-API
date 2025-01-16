@@ -39,22 +39,35 @@ class InstructorService {
             {} as Record<DayOfWeek, { start: string; end: string }[]>
         );
 
-        // Check for overlaps within each day
+        // Check for overlaps and validate start and end times within each day
         for (const [day, hours] of Object.entries(hoursByDay) as [DayOfWeek, { start: string; end: string }[]][]) {
             hours.sort((a, b) => a.start.localeCompare(b.start)); // Sort by start time
 
-            for (let i = 0; i < hours.length - 1; i++) {
+            for (let i = 0; i < hours.length; i++) {
                 const current = hours[i];
-                const next = hours[i + 1];
 
-                if (current.end > next.start) {
+                // Validate that the start time is less than the end time
+                if (current.start >= current.end) {
                     throw new AppError(
-                        `Overlapping time ranges found on ${day}: ${current.start}-${current.end} overlaps with ${next.start}-${next.end}.`,409
+                        `Invalid time range on ${day}: Start time (${current.start}) must be earlier than end time (${current.end}).`,
+                        400
                     );
+                }
+
+                // Validate overlap with the next time range
+                if (i < hours.length - 1) {
+                    const next = hours[i + 1];
+                    if (current.end > next.start) {
+                        throw new AppError(
+                            `Overlapping time ranges found on ${day}: ${current.start}-${current.end} overlaps with ${next.start}-${next.end}.`,
+                            409
+                        );
+                    }
                 }
             }
         }
     }
+
 
 
 
