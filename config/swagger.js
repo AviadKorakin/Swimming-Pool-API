@@ -177,7 +177,7 @@ const options = {
         },
         servers: [
             {
-                url: 'http://localhost:5000',
+                url: 'https://swimming-pool-api.onrender.com',
                 description: 'Local server',
             },
         ],
@@ -187,6 +187,6 @@ const options = {
 const swaggerSpec = (0, swagger_jsdoc_1.default)(options);
 const setupSwagger = (app) => {
     app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerSpec));
-    console.log('Swagger UI is available at http://localhost:5000/api-docs');
+    console.log('Swagger UI is available at https://swimming-pool-api.onrender.com/api-docs');
 };
 exports.setupSwagger = setupSwagger;
