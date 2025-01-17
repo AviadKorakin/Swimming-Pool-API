@@ -9,6 +9,16 @@ export interface ILesson extends Document {
     endTime: Date; // Lesson end time
 }
 
+export interface WeeklyLessonData {
+    sunday: ILesson[];
+    monday: ILesson[];
+    tuesday: ILesson[];
+    wednesday: ILesson[];
+    thursday: ILesson[];
+    friday: ILesson[];
+    saturday: ILesson[];
+}
+
 const LessonSchema: Schema = new Schema({
     instructor: { type: Schema.Types.ObjectId, ref: 'Instructor', required: true },
     students: {

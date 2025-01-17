@@ -1,7 +1,8 @@
-import { Request, Response } from 'express';
-import { lessonService } from '../services/lessonService';
-import { ILesson, LessonFilter } from '../models/lesson';
+import {Request, Response} from 'express';
+import {lessonService} from '../services/lessonService';
+import {ILesson, LessonFilter, WeeklyLessonData} from '../models/lesson';
 import {AppError} from "../errors/AppError";
+import mongoose from "mongoose";
 
 // Add a new lesson
 export const addLesson = async (
@@ -13,10 +14,9 @@ export const addLesson = async (
         res.status(201).json(lesson);
     } catch (error) {
         if (error instanceof AppError) {
-            res.status(error.statusCode).json({ error: error.message });
-        }
-        else
-        res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to add lesson' });
+            res.status(error.statusCode).json({error: error.message});
+        } else
+            res.status(400).json({error: error instanceof Error ? error.message : 'Failed to add lesson'});
     }
 };
 
@@ -26,19 +26,18 @@ export const updateLesson = async (
     res: Response<ILesson | { error: string }>
 ): Promise<void> => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
         const updatedLesson = await lessonService.updateLesson(id, req.body);
         if (!updatedLesson) {
-            res.status(404).json({ error: 'Lesson not found' });
+            res.status(404).json({error: 'Lesson not found'});
             return;
         }
         res.status(200).json(updatedLesson);
     } catch (error) {
         if (error instanceof AppError) {
-            res.status(error.statusCode).json({ error: error.message });
-        }
-        else
-        res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to update lesson' });
+            res.status(error.statusCode).json({error: error.message});
+        } else
+            res.status(400).json({error: error instanceof Error ? error.message : 'Failed to update lesson'});
     }
 };
 
@@ -48,19 +47,18 @@ export const removeLesson = async (
     res: Response<{ message: string } | { error: string }>
 ): Promise<void> => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
         const deleted = await lessonService.removeLesson(id);
         if (!deleted) {
-            res.status(404).json({ error: 'Lesson not found' });
+            res.status(404).json({error: 'Lesson not found'});
             return;
         }
-        res.status(200).json({ message: 'Lesson removed successfully' });
+        res.status(200).json({message: 'Lesson removed successfully'});
     } catch (error) {
         if (error instanceof AppError) {
-            res.status(error.statusCode).json({ error: error.message });
-        }
-        else
-        res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to remove lesson' });
+            res.status(error.statusCode).json({error: error.message});
+        } else
+            res.status(400).json({error: error instanceof Error ? error.message : 'Failed to remove lesson'});
     }
 };
 
@@ -70,10 +68,10 @@ export const getAllLessons = async (
     res: Response<{ lessons: ILesson[]; total: number } | { error: string }>
 ): Promise<void> => {
     try {
-        const { page = '1', limit = '10', ...filters } = req.query;
+        const {page = '1', limit = '10', ...filters} = req.query;
 
         if (isNaN(Number(page)) || isNaN(Number(limit))) {
-            res.status(400).json({ error: 'Page and limit must be valid numbers' });
+            res.status(400).json({error: 'Page and limit must be valid numbers'});
             return;
         }
 
@@ -81,9 +79,39 @@ export const getAllLessons = async (
         res.status(200).json(result);
     } catch (error) {
         if (error instanceof AppError) {
-            res.status(error.statusCode).json({ error: error.message });
+            res.status(error.statusCode).json({error: error.message});
+        } else
+            res.status(400).json({error: error instanceof Error ? error.message : 'Failed to retrieve lessons'});
+    }
+}
+
+// Get weekly lessons
+export const getWeeklyLessons = async (
+    req: Request<{}, {}, {}, { date: string; instructorId?: string }>,
+    res: Response<WeeklyLessonData | { error: string }>
+): Promise<void> => {
+    try {
+        const {date, instructorId} = req.query;
+
+        // Validate the date parameter
+        if (!date || isNaN(Date.parse(date))) {
+            res.status(400).json({error: 'Invalid or missing date parameter'});
+            return;
         }
-        else
-        res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to retrieve lessons' });
+
+        const weeklyLessons = await lessonService.getWeeklyLessons(
+            new Date(date),
+            instructorId ? instructorId : undefined
+        );
+
+        res.status(200).json(weeklyLessons);
+    } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({error: error.message});
+        } else {
+            res.status(400).json({
+                error: error instanceof Error ? error.message : 'Failed to retrieve weekly lessons',
+            });
+        }
     }
 };

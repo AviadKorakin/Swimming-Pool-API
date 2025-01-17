@@ -1,5 +1,5 @@
 import express from 'express';
-import { addLesson, updateLesson, removeLesson, getAllLessons } from '../controllers/lessonController';
+import {addLesson, updateLesson, removeLesson, getAllLessons, getWeeklyLessons} from '../controllers/lessonController';
 
 const router = express.Router();
 
@@ -111,5 +111,64 @@ router.delete('/:id', removeLesson);
  *         description: List of lessons retrieved successfully
  */
 router.get('/', getAllLessons);
+
+/**
+ * @swagger
+ * /api/lessons/weekly:
+ *   get:
+ *     summary: Get lessons for a specific week
+ *     tags: [Lessons]
+ *     parameters:
+ *       - in: query
+ *         name: date
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: A date within the week to retrieve lessons (e.g., "2025-01-20")
+ *       - in: query
+ *         name: instructorId
+ *         schema:
+ *           type: string
+ *         description: Filter lessons by instructor ID
+ *     responses:
+ *       200:
+ *         description: Weekly lessons grouped by days
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 sunday:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/LessonResponse'
+ *                 monday:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/LessonResponse'
+ *                 tuesday:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/LessonResponse'
+ *                 wednesday:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/LessonResponse'
+ *                 thursday:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/LessonResponse'
+ *                 friday:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/LessonResponse'
+ *                 saturday:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/LessonResponse'
+ */
+router.get('/weekly', getWeeklyLessons);
+
 
 export default router;
