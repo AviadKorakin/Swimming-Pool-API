@@ -16,6 +16,8 @@ class LessonService {
     // Add a new lesson
     addLesson(lessonData) {
         return __awaiter(this, void 0, void 0, function* () {
+            // Ensure start and end times are in the future
+            this.validateLessonDates(lessonData.startTime, lessonData.endTime);
             yield this.validateLessonOverlap(lessonData.instructor, lessonData.startTime, lessonData.endTime);
             const lesson = new lesson_1.Lesson(lessonData);
             return yield lesson.save();
@@ -30,6 +32,8 @@ class LessonService {
             }
             const startTime = updatedData.startTime || existingLesson.startTime;
             const endTime = updatedData.endTime || existingLesson.endTime;
+            // Ensure start and end times are in the future
+            this.validateLessonDates(startTime, endTime);
             yield this.validateLessonOverlap(updatedData.instructor || existingLesson.instructor, startTime, endTime, lessonId // Exclude the current lesson from validation
             );
             return lesson_1.Lesson.findByIdAndUpdate(lessonId, updatedData, { new: true });
@@ -55,6 +59,16 @@ class LessonService {
             return { lessons, total };
         });
     }
+    // Validate start and end times
+    validateLessonDates(startTime, endTime) {
+        const currentTime = new Date();
+        if (startTime <= currentTime) {
+            throw new AppError_1.AppError('Start time must be in the future', 400);
+        }
+        if (endTime <= startTime) {
+            throw new AppError_1.AppError('End time must be after the start time', 400);
+        }
+    }
     // Validate that a lesson does not overlap with existing lessons for the same instructor
     validateLessonOverlap(instructorId, startTime, endTime, excludeLessonId) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -77,6 +91,52 @@ class LessonService {
             if (overlappingLessons.length > 0) {
                 throw new AppError_1.AppError('Lesson times overlap with another lesson for this instructor.', 409);
             }
+        });
+    }
+    getWeeklyLessons(date, instructorId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Get the start (Sunday) and end (Saturday) of the week
+            const startOfWeek = new Date(date);
+            startOfWeek.setDate(date.getDate() - date.getDay()); // Move to Sunday
+            startOfWeek.setHours(0, 0, 0, 0); // Start of day
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6); // Move to Saturday
+            endOfWeek.setHours(23, 59, 59, 999); // End of day
+            // Build the query filters
+            const query = {
+                startTime: { $gte: startOfWeek, $lte: endOfWeek },
+            };
+            if (instructorId) {
+                query.instructor = instructorId;
+            }
+            // Fetch lessons within the week range and optional instructor filter
+            const lessons = yield lesson_1.Lesson.find(query)
+                .populate('instructor students')
+                .exec();
+            // Group lessons by day
+            const groupedLessons = {
+                sunday: [],
+                monday: [],
+                tuesday: [],
+                wednesday: [],
+                thursday: [],
+                friday: [],
+                saturday: [],
+            };
+            lessons.forEach((lesson) => {
+                const lessonDay = new Date(lesson.startTime).getDay(); // Get day of the week
+                const dayNames = [
+                    'sunday',
+                    'monday',
+                    'tuesday',
+                    'wednesday',
+                    'thursday',
+                    'friday',
+                    'saturday',
+                ];
+                groupedLessons[dayNames[lessonDay]].push(lesson);
+            });
+            return groupedLessons;
         });
     }
 }

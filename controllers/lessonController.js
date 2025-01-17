@@ -20,7 +20,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllLessons = exports.removeLesson = exports.updateLesson = exports.addLesson = void 0;
+exports.getWeeklyLessons = exports.getAllLessons = exports.removeLesson = exports.updateLesson = exports.addLesson = void 0;
 const lessonService_1 = require("../services/lessonService");
 const AppError_1 = require("../errors/AppError");
 // Add a new lesson
@@ -98,3 +98,27 @@ const getAllLessons = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.getAllLessons = getAllLessons;
+// Get weekly lessons
+const getWeeklyLessons = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { date, instructorId } = req.query;
+        // Validate the date parameter
+        if (!date || isNaN(Date.parse(date))) {
+            res.status(400).json({ error: 'Invalid or missing date parameter' });
+            return;
+        }
+        const weeklyLessons = yield lessonService_1.lessonService.getWeeklyLessons(new Date(date), instructorId ? instructorId : undefined);
+        res.status(200).json(weeklyLessons);
+    }
+    catch (error) {
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else {
+            res.status(400).json({
+                error: error instanceof Error ? error.message : 'Failed to retrieve weekly lessons',
+            });
+        }
+    }
+});
+exports.getWeeklyLessons = getWeeklyLessons;
