@@ -43,21 +43,31 @@ exports.addInstructor = addInstructor;
 const updateInstructor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
-        const updatedInstructor = yield instructorService_1.instructorService.updateInstructor(id, req.body);
+        const requestBody = req.body;
+        // Log the request data
+        console.log('Update Instructor Request:');
+        console.log('Instructor ID:', id);
+        console.log('Request Body:', requestBody);
+        const updatedInstructor = yield instructorService_1.instructorService.updateInstructor(id, requestBody);
         if (!updatedInstructor) {
+            console.log('Instructor not found:', id);
             res.status(404).json({ error: 'Instructor not found' });
             return;
         }
+        console.log('Updated Instructor:', updatedInstructor);
         res.status(200).json(updatedInstructor);
     }
     catch (error) {
+        // Log the error
+        console.error('Error in updateInstructor:', error);
         if (error instanceof AppError_1.AppError) {
             res.status(error.statusCode).json({ error: error.message });
         }
-        else
+        else {
             res.status(400).json({
                 error: error instanceof Error ? error.message : 'Failed to update instructor',
             });
+        }
     }
 });
 exports.updateInstructor = updateInstructor;
