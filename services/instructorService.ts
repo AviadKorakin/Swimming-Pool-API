@@ -5,6 +5,7 @@ class InstructorService {
     // Add a new instructor with overlap validation
     async addInstructor(instructorData: Omit<IInstructor,'_id'>): Promise<IInstructor> {
         if (instructorData.availableHours) {
+            instructorData.availableHours = this.sortAvailableHours(instructorData.availableHours);
             this.validateAvailableHours(instructorData.availableHours);
         }
 
@@ -21,10 +22,21 @@ class InstructorService {
         updatedData: Partial<Omit<IInstructor,'_id'>>
     ): Promise<IInstructor | null> {
         if (updatedData.availableHours) {
+            updatedData.availableHours = this.sortAvailableHours(updatedData.availableHours);
             this.validateAvailableHours(updatedData.availableHours);
         }
 
         return Instructor.findByIdAndUpdate(instructorId, updatedData, { new: true });
+    }
+
+    // Rearrange availableHours by sorting them by day and start time
+    private sortAvailableHours(availableHours: { day: DayOfWeek; start: string; end: string }[]) {
+        return availableHours.sort((a, b) => {
+            if (a.day !== b.day) {
+                return a.day.localeCompare(b.day); // Sort by day of the week
+            }
+            return a.start.localeCompare(b.start); // Sort by start time within the same day
+        });
     }
 
     // Validate availableHours for overlapping ranges

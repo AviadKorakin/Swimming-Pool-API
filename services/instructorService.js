@@ -17,6 +17,7 @@ class InstructorService {
     addInstructor(instructorData) {
         return __awaiter(this, void 0, void 0, function* () {
             if (instructorData.availableHours) {
+                instructorData.availableHours = this.sortAvailableHours(instructorData.availableHours);
                 this.validateAvailableHours(instructorData.availableHours);
             }
             // Ensure the name is unique
@@ -29,9 +30,19 @@ class InstructorService {
     updateInstructor(instructorId, updatedData) {
         return __awaiter(this, void 0, void 0, function* () {
             if (updatedData.availableHours) {
+                updatedData.availableHours = this.sortAvailableHours(updatedData.availableHours);
                 this.validateAvailableHours(updatedData.availableHours);
             }
             return instructor_1.Instructor.findByIdAndUpdate(instructorId, updatedData, { new: true });
+        });
+    }
+    // Rearrange availableHours by sorting them by day and start time
+    sortAvailableHours(availableHours) {
+        return availableHours.sort((a, b) => {
+            if (a.day !== b.day) {
+                return a.day.localeCompare(b.day); // Sort by day of the week
+            }
+            return a.start.localeCompare(b.start); // Sort by start time within the same day
         });
     }
     // Validate availableHours for overlapping ranges
