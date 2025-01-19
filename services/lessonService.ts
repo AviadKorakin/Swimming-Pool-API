@@ -171,12 +171,6 @@ class LessonService {
 
             const isLessonInFuture = lesson.startTime > today;
             const isInstructorLesson = lesson.instructor._id.toString() === instructorId;
-            console.log("lesson istructor" + lesson.instructor._id.toString())
-            console.log("lesson istructor2 " +instructorId);
-            console.log("today " + today);
-            console.log("lesson day " +lessonDay);
-            console.log("isLessonInFuture " + isLessonInFuture);
-            console.log("isInstructorLesson "+ isInstructorLesson);
 
             const lessonWithFlags: ILessonWithFlags = {
                 ...lesson.toObject(),
@@ -196,6 +190,74 @@ class LessonService {
         });
 
         return groupedLessons;
+    }
+
+
+    async getAvailableHoursForInstructor(instructorId: string, date: Date): Promise<{ start: string; end: string }[]> {
+        // Fetch instructor details
+        const instructor = await instructorService.getInstructorById(instructorId);
+        if (!instructor) {
+            throw new AppError("Instructor not found", 404);
+        }
+
+        // Convert the date to the corresponding day of the week
+        const dayOfWeek: DayOfWeek = [
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+        ][date.getDay()] as DayOfWeek;
+
+        // Fetch working hours for the instructor on the specified day
+        const workingHours = instructor.availableHours.filter((hour) => hour.day === dayOfWeek);
+
+        if (workingHours.length === 0) {
+            return []; // No working hours for the specified day
+        }
+
+        // Fetch lessons for the instructor on the specified date
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const lessons = await Lesson.find({
+            startTime: { $gte: startOfDay, $lte: endOfDay },
+        });
+
+        // Calculate available time slots
+        const bookedSlots = lessons.map((lesson) => ({
+            start: lesson.startTime.toISOString().slice(11, 16), // Extract HH:mm format
+            end: lesson.endTime.toISOString().slice(11, 16),
+        }));
+
+        const availableSlots: { start: string; end: string }[] = [];
+
+        workingHours.forEach(({ start, end }) => {
+            let currentStart = start;
+
+            // Iterate over booked slots and calculate gaps
+            bookedSlots
+                .filter((slot) => slot.start >= start && slot.end <= end) // Slots within the working hours
+                .sort((a, b) => a.start.localeCompare(b.start)) // Sort by start time
+                .forEach((slot) => {
+                    if (currentStart < slot.start) {
+                        availableSlots.push({ start: currentStart, end: slot.start });
+                    }
+                    currentStart = slot.end; // Move current start to the end of the booked slot
+                });
+
+            // Add the last slot after the final booked slot
+            if (currentStart < end) {
+                availableSlots.push({ start: currentStart, end });
+            }
+        });
+
+        return availableSlots;
     }
 }
 
