@@ -119,6 +119,7 @@ export const findMatchingStudents = async (
         const simplifiedStudents = students.map((student) => ({
             studentId: student.id,
             studentName: `${student.firstName} ${student.lastName}`,
+            lessonPreference:student.lessonPreference
         }));
 
         res.status(200).json(simplifiedStudents);

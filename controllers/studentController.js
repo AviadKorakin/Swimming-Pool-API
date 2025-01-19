@@ -127,6 +127,7 @@ const findMatchingStudents = (req, res) => __awaiter(void 0, void 0, void 0, fun
         const simplifiedStudents = students.map((student) => ({
             studentId: student.id,
             studentName: `${student.firstName} ${student.lastName}`,
+            lessonPreference: student.lessonPreference
         }));
         res.status(200).json(simplifiedStudents);
     }

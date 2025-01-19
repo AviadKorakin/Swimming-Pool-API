@@ -87,16 +87,23 @@ class StudentService {
     // Find students matching lesson criteria
     findMatchingStudents(style, type) {
         return __awaiter(this, void 0, void 0, function* () {
+            const priorityOrder = type === 'private'
+                ? ['private', 'both_prefer_private', 'both_prefer_group']
+                : ['group', 'both_prefer_group', 'both_prefer_private'];
             const students = yield student_1.Student.find({
                 preferredStyles: style,
-                lessonPreference: { $in: [type, 'both'] },
-            }, { _id: 1, firstName: 1, lastName: 1 } // Only fetch necessary fields
-            ).exec();
+                lessonPreference: { $in: priorityOrder }, // Filter students based on the priority list
+            }, { _id: 1, firstName: 1, lastName: 1, lessonPreference: 1 } // Fetch necessary fields
+            )
+                .exec();
+            // Sort the students based on the priorityOrder
+            const sortedStudents = students.sort((a, b) => priorityOrder.indexOf(a.lessonPreference) - priorityOrder.indexOf(b.lessonPreference));
             // Map the `_id` to `id` and convert to string
-            return students.map((student) => ({
+            return sortedStudents.map((student) => ({
                 id: student._id.toString(),
                 firstName: student.firstName,
                 lastName: student.lastName,
+                lessonPreference: student.lessonPreference
             }));
         });
     }

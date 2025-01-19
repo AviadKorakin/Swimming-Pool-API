@@ -92,20 +92,33 @@ class StudentService {
     async findMatchingStudents(
         style: string,
         type: 'private' | 'group'
-    ): Promise<{ id: string; firstName: string; lastName: string }[]> {
+    ): Promise<{ id: string; firstName: string; lastName: string, lessonPreference: string }[]> {
+        const priorityOrder =
+            type === 'private'
+                ? ['private', 'both_prefer_private', 'both_prefer_group']
+                : ['group', 'both_prefer_group', 'both_prefer_private'];
+
         const students = await Student.find(
             {
                 preferredStyles: style,
-                lessonPreference: { $in: [type, 'both'] },
+                lessonPreference: { $in: priorityOrder }, // Filter students based on the priority list
             },
-            { _id: 1, firstName: 1, lastName: 1 } // Only fetch necessary fields
-        ).exec();
+            { _id: 1, firstName: 1, lastName: 1, lessonPreference: 1 } // Fetch necessary fields
+        )
+            .exec();
+
+        // Sort the students based on the priorityOrder
+        const sortedStudents = students.sort(
+            (a, b) =>
+                priorityOrder.indexOf(a.lessonPreference) - priorityOrder.indexOf(b.lessonPreference)
+        );
 
         // Map the `_id` to `id` and convert to string
-        return students.map((student) => ({
+        return sortedStudents.map((student) => ({
             id: student._id.toString(),
             firstName: student.firstName,
             lastName: student.lastName,
+            lessonPreference : student.lessonPreference
         }));
     }
     // Assign a student to a lesson
