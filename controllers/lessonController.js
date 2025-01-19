@@ -101,13 +101,15 @@ exports.getAllLessons = getAllLessons;
 // Get weekly lessons
 const getWeeklyLessons = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { date, instructorId } = req.query;
+        const { date, instructorId, sort } = req.query;
         // Validate the date parameter
         if (!date || isNaN(Date.parse(date))) {
             res.status(400).json({ error: 'Invalid or missing date parameter' });
             return;
         }
-        const weeklyLessons = yield lessonService_1.lessonService.getWeeklyLessons(new Date(date), instructorId ? instructorId : undefined);
+        // Parse `sort` parameter (optional) and convert it to boolean
+        const sortFlag = sort === 'true';
+        const weeklyLessons = yield lessonService_1.lessonService.getWeeklyLessons(new Date(date), instructorId ? instructorId : undefined, sortFlag);
         res.status(200).json(weeklyLessons);
     }
     catch (error) {

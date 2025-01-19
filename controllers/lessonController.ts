@@ -87,27 +87,31 @@ export const getAllLessons = async (
 
 // Get weekly lessons
 export const getWeeklyLessons = async (
-    req: Request<{}, {}, {}, { date: string; instructorId?: string }>,
+    req: Request<{}, {}, {}, { date: string; instructorId?: string; sort?: string }>,
     res: Response<WeeklyLessonData | { error: string }>
 ): Promise<void> => {
     try {
-        const {date, instructorId} = req.query;
+        const { date, instructorId, sort } = req.query;
 
         // Validate the date parameter
         if (!date || isNaN(Date.parse(date))) {
-            res.status(400).json({error: 'Invalid or missing date parameter'});
+            res.status(400).json({ error: 'Invalid or missing date parameter' });
             return;
         }
 
+        // Parse `sort` parameter (optional) and convert it to boolean
+        const sortFlag = sort === 'true';
+
         const weeklyLessons = await lessonService.getWeeklyLessons(
             new Date(date),
-            instructorId ? instructorId : undefined
+            instructorId ? instructorId : undefined,
+            sortFlag
         );
 
         res.status(200).json(weeklyLessons);
     } catch (error) {
         if (error instanceof AppError) {
-            res.status(error.statusCode).json({error: error.message});
+            res.status(error.statusCode).json({ error: error.message });
         } else {
             res.status(400).json({
                 error: error instanceof Error ? error.message : 'Failed to retrieve weekly lessons',

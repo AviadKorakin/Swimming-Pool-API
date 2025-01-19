@@ -134,6 +134,20 @@ class InstructorService {
             expertise: { $all: styles }, // Match all styles in the array
         });
     }
+
+    // Get working days for an instructor
+    async getInstructorWorkingDays(instructorId: string): Promise<DayOfWeek[]> {
+        const instructor = await this.getInstructorById(instructorId);
+
+        if (!instructor) {
+            throw new AppError('Instructor not found', 404);
+        }
+
+        // Extract unique days from the availableHours array
+        return Array.from(
+            new Set(instructor.availableHours.map((day) => day.day))
+        );
+    }
 }
 
 export const instructorService = new InstructorService();

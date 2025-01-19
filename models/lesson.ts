@@ -7,19 +7,23 @@ export interface ILesson extends Document {
     type: 'private' | 'group'; // Lesson type
     startTime: Date; // Lesson start time
     endTime: Date; // Lesson end time
+    editable?: boolean; // Lesson is editable
+    deletable?: boolean; // Lesson is deletable
 }
-
+export interface ILessonWithFlags extends Omit<ILesson, keyof mongoose.Document> {
+    editable: boolean;
+    deletable: boolean;
+}
 // WeeklyLessonData Interface
 export interface WeeklyLessonData {
-    sunday: ILesson[];
-    monday: ILesson[];
-    tuesday: ILesson[];
-    wednesday: ILesson[];
-    thursday: ILesson[];
-    friday: ILesson[];
-    saturday: ILesson[];
+    Sunday: { date: Date; editable: boolean; lessons: ILessonWithFlags[] };
+    Monday: { date: Date; editable: boolean; lessons: ILessonWithFlags[] };
+    Tuesday: { date: Date; editable: boolean; lessons: ILessonWithFlags[] };
+    Wednesday: { date: Date; editable: boolean; lessons: ILessonWithFlags[] };
+    Thursday: { date: Date; editable: boolean; lessons: ILessonWithFlags[] };
+    Friday: { date: Date; editable: boolean; lessons: ILessonWithFlags[] };
+    Saturday: { date: Date; editable: boolean; lessons: ILessonWithFlags[] };
 }
-
 
 const LessonSchema: Schema = new Schema({
     instructor: { type: Schema.Types.ObjectId, ref: 'Instructor', required: true },

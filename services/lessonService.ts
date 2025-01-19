@@ -1,6 +1,8 @@
-import {ILesson, Lesson, LessonFilter, WeeklyLessonData} from '../models/lesson';
+import {ILesson, ILessonWithFlags, Lesson, LessonFilter, WeeklyLessonData} from '../models/lesson';
 import mongoose from 'mongoose';
 import {AppError} from "../errors/AppError";
+import {instructorService} from "./instructorService";
+import {DayOfWeek} from "../models/instructor";
 
 class LessonService {
     // Add a new lesson
@@ -114,58 +116,81 @@ class LessonService {
         }
     }
 
-    async getWeeklyLessons(date: Date, instructorId?: string): Promise<WeeklyLessonData> {
-        // Get the start (Sunday) and end (Saturday) of the week
+    async getWeeklyLessons(
+        date: Date,
+        instructorId?: string,
+        sort: boolean = false
+    ): Promise<WeeklyLessonData> {
         const startOfWeek = new Date(date);
         startOfWeek.setDate(date.getDate() - date.getDay()); // Move to Sunday
-        startOfWeek.setHours(0, 0, 0, 0); // Start of day
+        startOfWeek.setHours(0, 0, 0, 0);
 
         const endOfWeek = new Date(startOfWeek);
         endOfWeek.setDate(startOfWeek.getDate() + 6); // Move to Saturday
-        endOfWeek.setHours(23, 59, 59, 999); // End of day
+        endOfWeek.setHours(23, 59, 59, 999);
 
-        // Build the query filters
         const query: Record<string, any> = {
             startTime: {$gte: startOfWeek, $lte: endOfWeek},
         };
 
-        if (instructorId) {
+        if (sort && instructorId) {
             query.instructor = instructorId;
         }
 
-        // Fetch lessons within the week range and optional instructor filter
-        const lessons = await Lesson.find(query)
-            .populate('instructor students')
-            .exec();
+        const lessons = await Lesson.find(query).populate('instructor students').exec();
+        const instructorWorkingDays =  await instructorService.getInstructorWorkingDays(instructorId!);
 
-        // Group lessons by day
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const dayNames: DayOfWeek[] = [
+            'Sunday',
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
+        ];
+
         const groupedLessons: WeeklyLessonData = {
-            sunday: [],
-            monday: [],
-            tuesday: [],
-            wednesday: [],
-            thursday: [],
-            friday: [],
-            saturday: [],
+            Sunday: {date: new Date(), editable: false, lessons: []},
+            Monday: {date: new Date(), editable: false, lessons: []},
+            Tuesday: {date: new Date(), editable: false, lessons: []},
+            Wednesday: {date: new Date(), editable: false, lessons: []},
+            Thursday: {date: new Date(), editable: false, lessons: []},
+            Friday: {date: new Date(), editable: false, lessons: []},
+            Saturday: {date: new Date(), editable: false, lessons: []},
         };
 
         lessons.forEach((lesson) => {
-            const lessonDay = new Date(lesson.startTime).getDay(); // Get day of the week
-            const dayNames = [
-                'sunday',
-                'monday',
-                'tuesday',
-                'wednesday',
-                'thursday',
-                'friday',
-                'saturday',
-            ] as const;
+            const lessonDay = new Date(lesson.startTime).getDay();
+            const currentDayName = dayNames[lessonDay];
 
-            groupedLessons[dayNames[lessonDay]].push(lesson);
+            const isLessonInFuture = lesson.startTime > today;
+            const isInstructorLesson = lesson.instructor.toString() === instructorId;
+
+            const lessonWithFlags: ILessonWithFlags = {
+                ...lesson.toObject(),
+                editable: isLessonInFuture && isInstructorLesson,
+                deletable: isLessonInFuture && isInstructorLesson,
+            };
+
+            const dayIndex = dayNames.indexOf(currentDayName);
+            const dayDate = new Date(startOfWeek);
+            dayDate.setDate(startOfWeek.getDate() + dayIndex);
+
+            groupedLessons[currentDayName] = {
+                date: dayDate,
+                editable: dayDate > today && instructorWorkingDays.includes(currentDayName),
+                lessons: [...groupedLessons[currentDayName].lessons, lessonWithFlags],
+            };
         });
 
         return groupedLessons;
     }
 }
 
-export const lessonService = new LessonService();
+
+
+    export const lessonService = new LessonService();

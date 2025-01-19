@@ -125,48 +125,110 @@ router.get('/', getAllLessons);
  *         schema:
  *           type: string
  *           format: date-time
- *         description: A date within the week to retrieve lessons (e.g., "2025-01-20")
+ *         description: A date within the week to retrieve lessons (e.g., "2025-01-20").
  *       - in: query
  *         name: instructorId
  *         schema:
  *           type: string
- *         description: Filter lessons by instructor ID
+ *         description: Filter lessons by instructor ID.
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: boolean
+ *           default: false
+ *         description: Whether to filter lessons only for the specified instructor ID.
  *     responses:
  *       200:
- *         description: Weekly lessons grouped by days
+ *         description: Weekly lessons grouped by days, including additional metadata for each lesson.
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 sunday:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/LessonResponse'
- *                 monday:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/LessonResponse'
- *                 tuesday:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/LessonResponse'
- *                 wednesday:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/LessonResponse'
- *                 thursday:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/LessonResponse'
- *                 friday:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/LessonResponse'
- *                 saturday:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/LessonResponse'
+ *                 Sunday:
+ *                   type: object
+ *                   properties:
+ *                     date:
+ *                       type: string
+ *                       format: date-time
+ *                     editable:
+ *                       type: boolean
+ *                     lessons:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/LessonResponse'
+ *                 Monday:
+ *                   type: object
+ *                   properties:
+ *                     date:
+ *                       type: string
+ *                       format: date-time
+ *                     editable:
+ *                       type: boolean
+ *                     lessons:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/LessonResponse'
+ *                 Tuesday:
+ *                   type: object
+ *                   properties:
+ *                     date:
+ *                       type: string
+ *                       format: date-time
+ *                     editable:
+ *                       type: boolean
+ *                     lessons:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/LessonResponse'
+ *                 Wednesday:
+ *                   type: object
+ *                   properties:
+ *                     date:
+ *                       type: string
+ *                       format: date-time
+ *                     editable:
+ *                       type: boolean
+ *                     lessons:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/LessonResponse'
+ *                 Thursday:
+ *                   type: object
+ *                   properties:
+ *                     date:
+ *                       type: string
+ *                       format: date-time
+ *                     editable:
+ *                       type: boolean
+ *                     lessons:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/LessonResponse'
+ *                 Friday:
+ *                   type: object
+ *                   properties:
+ *                     date:
+ *                       type: string
+ *                       format: date-time
+ *                     editable:
+ *                       type: boolean
+ *                     lessons:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/LessonResponse'
+ *                 Saturday:
+ *                   type: object
+ *                   properties:
+ *                     date:
+ *                       type: string
+ *                       format: date-time
+ *                     editable:
+ *                       type: boolean
+ *                     lessons:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/LessonResponse'
  */
 router.get('/weekly', getWeeklyLessons);
 

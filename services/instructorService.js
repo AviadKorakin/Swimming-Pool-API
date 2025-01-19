@@ -124,5 +124,16 @@ class InstructorService {
             });
         });
     }
+    // Get working days for an instructor
+    getInstructorWorkingDays(instructorId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const instructor = yield this.getInstructorById(instructorId);
+            if (!instructor) {
+                throw new AppError_1.AppError('Instructor not found', 404);
+            }
+            // Extract unique days from the availableHours array
+            return Array.from(new Set(instructor.availableHours.map((day) => day.day)));
+        });
+    }
 }
 exports.instructorService = new InstructorService();

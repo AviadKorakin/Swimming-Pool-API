@@ -8,13 +8,13 @@ export interface IInstructor extends Document {
 }
 
 export type DayOfWeek =
+    | 'Sunday'
     | 'Monday'
     | 'Tuesday'
     | 'Wednesday'
     | 'Thursday'
     | 'Friday'
-    | 'Saturday'
-    | 'Sunday';
+    | 'Saturday';
 
 
 const InstructorSchema: Schema = new Schema({
