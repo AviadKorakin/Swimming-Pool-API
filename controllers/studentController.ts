@@ -105,7 +105,7 @@ export const deleteStudent = async (
 // Find matching students for a lesson
 export const findMatchingStudents = async (
     req: Request<{}, {}, {}, { style: string; type: 'private' | 'group' }>,
-    res: Response<IStudent[] | { error: string }>,
+    res: Response<{ studentId: string; studentName: string }[] | { error: string }>
 ): Promise<void> => {
     try {
         const { style, type } = req.query;
@@ -114,8 +114,14 @@ export const findMatchingStudents = async (
             return;
         }
 
+        // Fetch only studentId and studentName fields
         const students = await studentService.findMatchingStudents(style, type);
-        res.status(200).json(students);
+        const simplifiedStudents = students.map((student) => ({
+            studentId: student.id,
+            studentName: `${student.firstName} ${student.lastName}`,
+        }));
+
+        res.status(200).json(simplifiedStudents);
     } catch (error) {
         res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to find matching students' });
     }

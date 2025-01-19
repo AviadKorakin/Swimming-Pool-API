@@ -89,13 +89,25 @@ class StudentService {
 
 
     // Find students matching lesson criteria
-    async findMatchingStudents(style: string, type: 'private' | 'group'): Promise<IStudent[]> {
-        return Student.find({
-            preferredStyles: style,
-            lessonPreference: {$in: [type, 'both']}, // Match 'both' or specific type
-        });
-    }
+    async findMatchingStudents(
+        style: string,
+        type: 'private' | 'group'
+    ): Promise<{ id: string; firstName: string; lastName: string }[]> {
+        const students = await Student.find(
+            {
+                preferredStyles: style,
+                lessonPreference: { $in: [type, 'both'] },
+            },
+            { _id: 1, firstName: 1, lastName: 1 } // Only fetch necessary fields
+        ).exec();
 
+        // Map the `_id` to `id` and convert to string
+        return students.map((student) => ({
+            id: student._id.toString(),
+            firstName: student.firstName,
+            lastName: student.lastName,
+        }));
+    }
     // Assign a student to a lesson
     async assignStudentToLesson(studentId: string, lessonId: string): Promise<IStudent | null> {
         const lesson = await Lesson.findById(lessonId);

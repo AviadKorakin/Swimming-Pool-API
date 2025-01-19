@@ -87,10 +87,17 @@ class StudentService {
     // Find students matching lesson criteria
     findMatchingStudents(style, type) {
         return __awaiter(this, void 0, void 0, function* () {
-            return student_1.Student.find({
+            const students = yield student_1.Student.find({
                 preferredStyles: style,
-                lessonPreference: { $in: [type, 'both'] }, // Match 'both' or specific type
-            });
+                lessonPreference: { $in: [type, 'both'] },
+            }, { _id: 1, firstName: 1, lastName: 1 } // Only fetch necessary fields
+            ).exec();
+            // Map the `_id` to `id` and convert to string
+            return students.map((student) => ({
+                id: student._id.toString(),
+                firstName: student.firstName,
+                lastName: student.lastName,
+            }));
         });
     }
     // Assign a student to a lesson

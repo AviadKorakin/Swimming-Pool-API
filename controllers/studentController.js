@@ -122,8 +122,13 @@ const findMatchingStudents = (req, res) => __awaiter(void 0, void 0, void 0, fun
             res.status(400).json({ error: 'Style and type are required query parameters' });
             return;
         }
+        // Fetch only studentId and studentName fields
         const students = yield studentService_1.studentService.findMatchingStudents(style, type);
-        res.status(200).json(students);
+        const simplifiedStudents = students.map((student) => ({
+            studentId: student.id,
+            studentName: `${student.firstName} ${student.lastName}`,
+        }));
+        res.status(200).json(simplifiedStudents);
     }
     catch (error) {
         res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to find matching students' });
