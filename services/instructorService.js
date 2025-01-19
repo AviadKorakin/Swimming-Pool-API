@@ -38,11 +38,22 @@ class InstructorService {
     }
     // Rearrange availableHours by sorting them by day and start time
     sortAvailableHours(availableHours) {
+        const dayOrder = {
+            Sunday: 0,
+            Monday: 1,
+            Tuesday: 2,
+            Wednesday: 3,
+            Thursday: 4,
+            Friday: 5,
+            Saturday: 6,
+        };
         return availableHours.sort((a, b) => {
-            if (a.day !== b.day) {
-                return a.day.localeCompare(b.day); // Sort by day of the week
+            // Sort by day first using the predefined dayOrder
+            if (dayOrder[a.day] !== dayOrder[b.day]) {
+                return dayOrder[a.day] - dayOrder[b.day];
             }
-            return a.start.localeCompare(b.start); // Sort by start time within the same day
+            // Sort by start time if the days are the same
+            return a.start.localeCompare(b.start);
         });
     }
     // Validate availableHours for overlapping ranges

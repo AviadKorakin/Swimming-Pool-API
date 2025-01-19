@@ -19,10 +19,14 @@ var __rest = (this && this.__rest) || function (s, e) {
         }
     return t;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getWeeklyLessons = exports.getAllLessons = exports.removeLesson = exports.updateLesson = exports.addLesson = void 0;
+exports.getAvailableHoursForInstructor = exports.getWeeklyLessons = exports.getAllLessons = exports.removeLesson = exports.updateLesson = exports.addLesson = void 0;
 const lessonService_1 = require("../services/lessonService");
 const AppError_1 = require("../errors/AppError");
+const mongoose_1 = __importDefault(require("mongoose"));
 // Add a new lesson
 const addLesson = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -124,3 +128,30 @@ const getWeeklyLessons = (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.getWeeklyLessons = getWeeklyLessons;
+const getAvailableHoursForInstructor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { instructorId, date } = req.query;
+        // Validate instructorId and date parameters
+        if (!instructorId || !mongoose_1.default.Types.ObjectId.isValid(instructorId)) {
+            res.status(400).json({ error: 'Invalid or missing instructorId parameter' });
+            return;
+        }
+        if (!date || isNaN(Date.parse(date))) {
+            res.status(400).json({ error: 'Invalid or missing date parameter' });
+            return;
+        }
+        const availableHours = yield lessonService_1.lessonService.getAvailableHoursForInstructor(instructorId, new Date(date));
+        res.status(200).json({ availableHours });
+    }
+    catch (error) {
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else {
+            res.status(400).json({
+                error: error instanceof Error ? error.message : 'Failed to retrieve available hours',
+            });
+        }
+    }
+});
+exports.getAvailableHoursForInstructor = getAvailableHoursForInstructor;
