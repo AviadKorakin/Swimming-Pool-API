@@ -109,7 +109,7 @@ class LessonService {
                 query.instructor = instructorId;
             }
             const lessons = yield lesson_1.Lesson.find(query).populate('instructor students').exec();
-            const instructorWorkingDays = yield instructorService_1.instructorService.getInstructorWorkingDays(instructorId);
+            const instructorWorkingDays = instructorId ? yield instructorService_1.instructorService.getInstructorWorkingDays(instructorId) : [];
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const dayNames = [
@@ -121,15 +121,16 @@ class LessonService {
                 'Friday',
                 'Saturday',
             ];
-            const groupedLessons = {
-                Sunday: { date: new Date(), editable: false, lessons: [] },
-                Monday: { date: new Date(), editable: false, lessons: [] },
-                Tuesday: { date: new Date(), editable: false, lessons: [] },
-                Wednesday: { date: new Date(), editable: false, lessons: [] },
-                Thursday: { date: new Date(), editable: false, lessons: [] },
-                Friday: { date: new Date(), editable: false, lessons: [] },
-                Saturday: { date: new Date(), editable: false, lessons: [] },
-            };
+            const groupedLessons = dayNames.reduce((acc, day, index) => {
+                const dayDate = new Date(startOfWeek);
+                dayDate.setDate(startOfWeek.getDate() + index); // Calculate the exact date for each day
+                acc[day] = {
+                    date: dayDate,
+                    editable: dayDate > today && instructorWorkingDays.includes(day),
+                    lessons: [],
+                };
+                return acc;
+            }, {});
             lessons.forEach((lesson) => {
                 const lessonDay = new Date(lesson.startTime).getDay();
                 const currentDayName = dayNames[lessonDay];

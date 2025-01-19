@@ -138,7 +138,7 @@ class LessonService {
         }
 
         const lessons = await Lesson.find(query).populate('instructor students').exec();
-        const instructorWorkingDays =  await instructorService.getInstructorWorkingDays(instructorId!);
+        const instructorWorkingDays =  instructorId? await instructorService.getInstructorWorkingDays(instructorId!) : [];
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -153,15 +153,17 @@ class LessonService {
             'Saturday',
         ];
 
-        const groupedLessons: WeeklyLessonData = {
-            Sunday: {date: new Date(), editable: false, lessons: []},
-            Monday: {date: new Date(), editable: false, lessons: []},
-            Tuesday: {date: new Date(), editable: false, lessons: []},
-            Wednesday: {date: new Date(), editable: false, lessons: []},
-            Thursday: {date: new Date(), editable: false, lessons: []},
-            Friday: {date: new Date(), editable: false, lessons: []},
-            Saturday: {date: new Date(), editable: false, lessons: []},
-        };
+        const groupedLessons: WeeklyLessonData = dayNames.reduce((acc, day, index) => {
+            const dayDate = new Date(startOfWeek);
+            dayDate.setDate(startOfWeek.getDate() + index); // Calculate the exact date for each day
+
+            acc[day] = {
+                date: dayDate,
+                editable: dayDate > today && instructorWorkingDays.includes(day),
+                lessons: [],
+            };
+            return acc;
+        }, {} as WeeklyLessonData);
 
         lessons.forEach((lesson) => {
             const lessonDay = new Date(lesson.startTime).getDay();
