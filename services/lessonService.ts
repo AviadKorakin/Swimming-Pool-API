@@ -171,12 +171,12 @@ class LessonService {
 
             const isLessonInFuture = lesson.startTime > today;
             const isInstructorLesson = lesson.instructor.toString() === instructorId;
-            console.log(lesson.instructor.toString())
-            console.log(instructorId);
-            console.log(today);
-            console.log(lessonDay);
-            console.log(isLessonInFuture);
-            console.log(isInstructorLesson);
+            console.log("lesson istructor" + lesson.instructor.toString())
+            console.log("lesson istructor2 " +instructorId);
+            console.log("today " + today);
+            console.log("lesson day " +lessonDay);
+            console.log("isLessonInFuture " + isLessonInFuture);
+            console.log("isInstructorLesson "+ isInstructorLesson);
 
             const lessonWithFlags: ILessonWithFlags = {
                 ...lesson.toObject(),
