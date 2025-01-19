@@ -170,8 +170,8 @@ class LessonService {
             const currentDayName = dayNames[lessonDay];
 
             const isLessonInFuture = lesson.startTime > today;
-            const isInstructorLesson = lesson.instructor.toString() === instructorId;
-            console.log("lesson istructor" + lesson.instructor.toString())
+            const isInstructorLesson = lesson.instructor._id.toString() === instructorId;
+            console.log("lesson istructor" + lesson.instructor._id.toString())
             console.log("lesson istructor2 " +instructorId);
             console.log("today " + today);
             console.log("lesson day " +lessonDay);
