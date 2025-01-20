@@ -124,6 +124,7 @@ export const getStudentWeeklyLessons = async (
     res: Response<WeeklyStudentLessonData | { error: string }>
 ): Promise<void> => {
     try {
+        console.log(req.body);
         const { date, studentId, instructorId } = req.body;
 
         // Validate date and studentId parameters
