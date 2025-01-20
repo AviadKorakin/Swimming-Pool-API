@@ -260,16 +260,17 @@ class LessonService {
             const lessonDay = new Date(lesson.startTime).getDay();
             const currentDayName = dayNames[lessonDay];
             let assignable = false;
-            let cancelable = false;
+            let cancelable: boolean;
             try {
                 // Validate if the student can be assigned to this lesson
                 this.validateAssignment(student, lesson);
-                assignable = lesson.startTime > today ; // If validation succeeds, mark as assignable
+                assignable = lesson.startTime > today && !this.isAssignedToLesson(student,lesson); // If validation succeeds, mark as assignable
             } catch {
                 assignable = false; // If validation fails, the lesson is not assignable
             }
             finally {
                 cancelable= lesson.startTime > today &&  this.isAssignedToLesson(student,lesson);
+                console.log(cancelable);
             }
 
             const lessonWithFlags: ILessonWithStudentFlags = {
@@ -287,6 +288,8 @@ class LessonService {
 
     isAssignedToLesson(student: IStudent, lesson: ILesson): boolean {
         // Check if the student is already assigned to the lesson
+        console.log(lesson.students)
+        console.log(student)
         return lesson.students.some((id) => id.toString() === student._id.toString());
 
     }
