@@ -214,7 +214,6 @@ class LessonService {
                 }
                 finally {
                     cancelable = lesson.startTime > today && isAssigned;
-                    console.log(cancelable);
                 }
                 const lessonWithFlags = Object.assign(Object.assign({}, lesson.toObject()), { assignable: assignable, cancelable: cancelable });
                 groupedLessons[currentDayName].lessons.push(lessonWithFlags);
@@ -224,9 +223,7 @@ class LessonService {
     }
     isAssignedToLesson(student, lesson) {
         // Check if the student is already assigned to the lesson
-        console.log(lesson.students);
-        console.log(student);
-        return lesson.students.some((id) => id.toString() === student._id.toString());
+        return lesson.students.some((student) => student._id.toString() === student._id.toString());
     }
     validateAssignment(student, lesson) {
         // Ensure the lesson doesn't exceed its capacity
