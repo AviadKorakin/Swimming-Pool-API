@@ -1,8 +1,17 @@
-import {ILesson, ILessonWithFlags, Lesson, LessonFilter, WeeklyLessonData} from '../models/lesson';
+import {
+    ILesson,
+    ILessonWithFlags,
+    ILessonWithStudentFlags,
+    Lesson,
+    LessonFilter,
+    WeeklyLessonData, WeeklyStudentLessonData
+} from '../models/lesson';
 import mongoose from 'mongoose';
 import {AppError} from "../errors/AppError";
 import {instructorService} from "./instructorService";
 import {DayOfWeek} from "../models/instructor";
+import {studentService} from "./studentService";
+import {IStudent} from "../models/student";
 
 class LessonService {
     // Add a new lesson
@@ -258,6 +267,123 @@ class LessonService {
         });
 
         return availableSlots;
+    }
+
+    async getStudentWeeklyLessons(
+        date: Date,
+        studentId: string,
+        instructorId?: string
+    ): Promise<WeeklyStudentLessonData> {
+        const student = await studentService.getStudentById(studentId);
+        if (!student) {
+            throw new AppError("Student not found", 404);
+        }
+
+        const startOfWeek = new Date(date);
+        startOfWeek.setDate(date.getDate() - date.getDay()); // Move to Sunday
+        startOfWeek.setHours(0, 0, 0, 0);
+
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6); // Move to Saturday
+        endOfWeek.setHours(23, 59, 59, 999);
+
+        const query: Record<string, any> = {
+            startTime: { $gte: startOfWeek, $lte: endOfWeek },
+            type: (student.lessonPreference === "both_prefer_group" || student.lessonPreference ===  "both_prefer_private")
+                ? { $in: ["private", "group"] }
+                : student.lessonPreference, // Match the student's lesson preference
+            style: { $in: student.preferredStyles }, // Match the student's preferred styles
+        };
+
+        if (instructorId) {
+            query.instructor = instructorId; // Filter by instructor if provided
+        }
+
+        const lessons = await Lesson.find(query).populate("instructor students").exec();
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const dayNames: DayOfWeek[] = [
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+        ];
+
+        const groupedLessons: WeeklyStudentLessonData = dayNames.reduce((acc, day, index) => {
+            const dayDate = new Date(startOfWeek);
+            dayDate.setDate(startOfWeek.getDate() + index); // Calculate the exact date for each day
+
+            acc[day] = {
+                date: dayDate,
+                lessons: [],
+            };
+            return acc;
+        }, {} as WeeklyStudentLessonData);
+
+        lessons.forEach((lesson) => {
+            const lessonDay = new Date(lesson.startTime).getDay();
+            const currentDayName = dayNames[lessonDay];
+            let assignable = false;
+            try {
+                // Validate if the student can be assigned to this lesson
+                this.validateAssignment(student, lesson);
+                assignable = true; // If validation succeeds, mark as assignable
+            } catch {
+                assignable = false; // If validation fails, the lesson is not assignable
+            }
+
+            const lessonWithFlags: ILessonWithStudentFlags = {
+                ...lesson.toObject(),
+                assignable:assignable
+
+            };
+
+            groupedLessons[currentDayName].lessons.push(lessonWithFlags);
+        });
+
+        return groupedLessons;
+    }
+
+    validateAssignment(student: IStudent, lesson: ILesson): void {
+        // Check if the student is already assigned to the lesson
+        if (lesson.students.some((id) => id.toString() === student._id.toString())) {
+            throw new AppError("Student is already assigned to this lesson", 409);
+        }
+
+        // Ensure the lesson doesn't exceed its capacity
+        const maxCapacity = lesson.type === "group" ? 30 : 1;
+        if (lesson.students.length >= maxCapacity) {
+            throw new AppError(
+                lesson.type === "group"
+                    ? "Lesson is full (maximum 30 students allowed)."
+                    : "Private lesson already has a student.",
+                409
+            );
+        }
+
+        // Ensure the student's preferences match the lesson requirements
+        if (!student.preferredStyles.includes(lesson.style)) {
+            throw new AppError("Student's preferences do not match the lesson style.", 400);
+        }
+
+        if (
+            lesson.type === "private" &&
+            !["private", "both_prefer_private"].includes(student.lessonPreference)
+        ) {
+            throw new AppError("Student's preferences do not match the private lesson.", 400);
+        }
+
+        if (
+            lesson.type === "group" &&
+            !["group", "both_prefer_group"].includes(student.lessonPreference)
+        ) {
+            throw new AppError("Student's preferences do not match the group lesson.", 400);
+        }
     }
 }
 

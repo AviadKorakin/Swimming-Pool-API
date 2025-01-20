@@ -9,10 +9,16 @@ export interface ILesson extends Document {
     endTime: Date; // Lesson end time
     editable?: boolean; // Lesson is editable
     deletable?: boolean; // Lesson is deletable
+    assignable?: boolean;
 }
 export interface ILessonWithFlags extends Omit<ILesson, keyof mongoose.Document> {
     editable: boolean;
     deletable: boolean;
+
+}
+
+export interface ILessonWithStudentFlags extends Omit<ILesson, keyof mongoose.Document> {
+    assignable: boolean;
 }
 // WeeklyLessonData Interface
 export interface WeeklyLessonData {
@@ -23,6 +29,17 @@ export interface WeeklyLessonData {
     Thursday: { date: Date; editable: boolean; lessons: ILessonWithFlags[] };
     Friday: { date: Date; editable: boolean; lessons: ILessonWithFlags[] };
     Saturday: { date: Date; editable: boolean; lessons: ILessonWithFlags[] };
+}
+
+// WeeklyLessonData Interface
+export interface WeeklyStudentLessonData {
+    Sunday: { date: Date; lessons: ILessonWithStudentFlags[] };
+    Monday: { date: Date; lessons: ILessonWithStudentFlags[] };
+    Tuesday: { date: Date; lessons: ILessonWithStudentFlags[] };
+    Wednesday: { date: Date; lessons: ILessonWithStudentFlags[] };
+    Thursday: { date: Date; lessons: ILessonWithStudentFlags[] };
+    Friday: { date: Date;  lessons: ILessonWithStudentFlags[] };
+    Saturday: { date: Date; lessons: ILessonWithStudentFlags[] };
 }
 
 const LessonSchema: Schema = new Schema({

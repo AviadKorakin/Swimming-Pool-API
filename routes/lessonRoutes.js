@@ -266,4 +266,42 @@ router.get('/weekly', lessonController_1.getWeeklyLessons);
  *         description: Instructor not found or no available hours
  */
 router.get('/available-hours', lessonController_1.getAvailableHoursForInstructor);
+/**
+ * @swagger
+ * /api/lessons/student-weekly:
+ *   get:
+ *     summary: Get lessons for a specific student for a given week
+ *     tags: [Lessons]
+ *     parameters:
+ *       - in: query
+ *         name: date
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: A date within the week to retrieve lessons (e.g., "2025-01-20").
+ *       - in: query
+ *         name: studentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the student.
+ *       - in: query
+ *         name: instructorId
+ *         schema:
+ *           type: string
+ *         description: (Optional) Filter lessons by instructor ID.
+ *     responses:
+ *       200:
+ *         description: Weekly lessons for the student grouped by days, including assignable flags.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/WeeklyStudentLessonData'
+ *       400:
+ *         description: Invalid or missing parameters.
+ *       404:
+ *         description: Student not found.
+ */
+router.get('/student-weekly', lessonController_1.getStudentWeeklyLessons);
 exports.default = router;

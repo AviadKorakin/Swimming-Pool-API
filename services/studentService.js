@@ -13,6 +13,7 @@ exports.studentService = void 0;
 const student_1 = require("../models/student");
 const lesson_1 = require("../models/lesson");
 const AppError_1 = require("../errors/AppError");
+const lessonService_1 = require("./lessonService");
 class StudentService {
     // Add a new student
     addStudent(studentData) {
@@ -118,18 +119,7 @@ class StudentService {
             if (!student) {
                 throw new AppError_1.AppError('Student not found', 404);
             }
-            // Check if the student is already assigned to the lesson
-            if (lesson.students.some(id => id.toString() === student._id.toString())) {
-                throw new AppError_1.AppError('Student is already assigned to this lesson', 409);
-            }
-            // Ensure the lesson doesn't exceed its capacity
-            const maxCapacity = lesson.type === 'group' ? 30 : 1; // 30 for group lessons, 1 for private lessons
-            if (lesson.students.length >= maxCapacity) {
-                throw new AppError_1.AppError(lesson.type === 'group'
-                    ? 'Lesson is full (maximum 30 students allowed).'
-                    : 'Private lesson already has a student.', 409);
-            }
-            // Add the student to the lesson using their ObjectId
+            lessonService_1.lessonService.validateAssignment(student, lesson);
             lesson.students.push(student._id);
             yield lesson.save();
             return student;

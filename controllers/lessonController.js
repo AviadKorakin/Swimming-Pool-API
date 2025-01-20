@@ -23,7 +23,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAvailableHoursForInstructor = exports.getWeeklyLessons = exports.getAllLessons = exports.removeLesson = exports.updateLesson = exports.addLesson = void 0;
+exports.getStudentWeeklyLessons = exports.getAvailableHoursForInstructor = exports.getWeeklyLessons = exports.getAllLessons = exports.removeLesson = exports.updateLesson = exports.addLesson = void 0;
 const lessonService_1 = require("../services/lessonService");
 const AppError_1 = require("../errors/AppError");
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -155,3 +155,30 @@ const getAvailableHoursForInstructor = (req, res) => __awaiter(void 0, void 0, v
     }
 });
 exports.getAvailableHoursForInstructor = getAvailableHoursForInstructor;
+const getStudentWeeklyLessons = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { date, studentId, instructorId } = req.query;
+        // Validate date and studentId parameters
+        if (!date || isNaN(Date.parse(date))) {
+            res.status(400).json({ error: 'Invalid or missing date parameter' });
+            return;
+        }
+        if (!studentId || !mongoose_1.default.Types.ObjectId.isValid(studentId)) {
+            res.status(400).json({ error: 'Invalid or missing studentId parameter' });
+            return;
+        }
+        const studentWeeklyLessons = yield lessonService_1.lessonService.getStudentWeeklyLessons(new Date(date), studentId, instructorId || undefined);
+        res.status(200).json(studentWeeklyLessons);
+    }
+    catch (error) {
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else {
+            res.status(400).json({
+                error: error instanceof Error ? error.message : 'Failed to retrieve student weekly lessons',
+            });
+        }
+    }
+});
+exports.getStudentWeeklyLessons = getStudentWeeklyLessons;

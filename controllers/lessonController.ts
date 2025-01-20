@@ -1,6 +1,6 @@
 import {Request, Response} from 'express';
 import {lessonService} from '../services/lessonService';
-import {ILesson, LessonFilter, WeeklyLessonData} from '../models/lesson';
+import {ILesson, LessonFilter, WeeklyLessonData, WeeklyStudentLessonData} from '../models/lesson';
 import {AppError} from "../errors/AppError";
 import mongoose from "mongoose";
 
@@ -150,3 +150,39 @@ export const getAvailableHoursForInstructor = async (
         }
     }
 };
+export const getStudentWeeklyLessons = async (
+    req: Request<{}, {}, {}, { date: string; studentId: string; instructorId?: string }>,
+    res: Response<WeeklyStudentLessonData | { error: string }>
+): Promise<void> => {
+    try {
+        const { date, studentId, instructorId } = req.query;
+
+        // Validate date and studentId parameters
+        if (!date || isNaN(Date.parse(date))) {
+            res.status(400).json({ error: 'Invalid or missing date parameter' });
+            return;
+        }
+
+        if (!studentId || !mongoose.Types.ObjectId.isValid(studentId)) {
+            res.status(400).json({ error: 'Invalid or missing studentId parameter' });
+            return;
+        }
+
+        const studentWeeklyLessons = await lessonService.getStudentWeeklyLessons(
+            new Date(date),
+            studentId,
+            instructorId || undefined
+        );
+
+        res.status(200).json(studentWeeklyLessons);
+    } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        } else {
+            res.status(400).json({
+                error: error instanceof Error ? error.message : 'Failed to retrieve student weekly lessons',
+            });
+        }
+    }
+};
+

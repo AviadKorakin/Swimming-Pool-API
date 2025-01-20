@@ -25,6 +25,65 @@ const options = {
                 },
             },
             schemas: {
+                WeeklyStudentLessonData: {
+                    type: "object",
+                    properties: {
+                        Sunday: { $ref: "#/components/schemas/DayLessonDataWithStudentFlags" },
+                        Monday: { $ref: "#/components/schemas/DayLessonDataWithStudentFlags" },
+                        Tuesday: { $ref: "#/components/schemas/DayLessonDataWithStudentFlags" },
+                        Wednesday: { $ref: "#/components/schemas/DayLessonDataWithStudentFlags" },
+                        Thursday: { $ref: "#/components/schemas/DayLessonDataWithStudentFlags" },
+                        Friday: { $ref: "#/components/schemas/DayLessonDataWithStudentFlags" },
+                        Saturday: { $ref: "#/components/schemas/DayLessonDataWithStudentFlags" },
+                    },
+                },
+                DayLessonDataWithStudentFlags: {
+                    type: "object",
+                    properties: {
+                        date: {
+                            type: "string",
+                            format: "date-time",
+                            description: "The specific date for the lessons."
+                        },
+                        lessons: {
+                            type: "array",
+                            items: {
+                                $ref: "#/components/schemas/LessonWithStudentFlags"
+                            }
+                        }
+                    },
+                },
+                LessonWithStudentFlags: {
+                    type: "object",
+                    properties: {
+                        instructor: { type: "string", description: "The ID of the instructor." },
+                        students: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: "List of student IDs assigned to the lesson."
+                        },
+                        style: { type: "string", description: "Swimming style of the lesson." },
+                        type: {
+                            type: "string",
+                            enum: ["private", "group"],
+                            description: "Lesson type (private or group)."
+                        },
+                        startTime: {
+                            type: "string",
+                            format: "date-time",
+                            description: "Start time of the lesson."
+                        },
+                        endTime: {
+                            type: "string",
+                            format: "date-time",
+                            description: "End time of the lesson."
+                        },
+                        assignable: {
+                            type: "boolean",
+                            description: "Indicates whether the student can be assigned to this lesson."
+                        }
+                    },
+                },
                 // User schemas
                 UserRequest: {
                     type: "object",
