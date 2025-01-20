@@ -201,8 +201,13 @@ class LessonService {
                 const isAssigned = this.isAssignedToLesson(student, lesson);
                 try {
                     // Validate if the student can be assigned to this lesson
-                    this.validateAssignment(student, lesson);
-                    assignable = lesson.startTime > today && !isAssigned; // If validation succeeds, mark as assignable
+                    if (!isAssigned) {
+                        this.validateAssignment(student, lesson);
+                        assignable = lesson.startTime > today; // If validation succeeds, mark as assignable
+                    }
+                    else {
+                        assignable = false;
+                    }
                 }
                 catch (_a) {
                     assignable = false; // If validation fails, the lesson is not assignable
