@@ -13,14 +13,17 @@ exports.lessonService = void 0;
 const lesson_1 = require("../models/lesson");
 const AppError_1 = require("../errors/AppError");
 const instructorService_1 = require("./instructorService");
+const instructor_1 = require("../models/instructor");
 const studentService_1 = require("./studentService");
+const student_1 = require("../models/student");
 class LessonService {
     // Add a new lesson
     addLesson(lessonData) {
         return __awaiter(this, void 0, void 0, function* () {
             // Ensure start and end times are in the future
             this.validateLessonDates(lessonData.startTime, lessonData.endTime);
-            yield this.validateLessonOverlap(lessonData.instructor, lessonData.startTime, lessonData.endTime);
+            yield this.checkExists(lessonData.instructor, lessonData.students);
+            yield this.validateLessonOverlap(lessonData.startTime, lessonData.endTime);
             const lesson = new lesson_1.Lesson(lessonData);
             return yield lesson.save();
         });
@@ -36,7 +39,8 @@ class LessonService {
             const endTime = updatedData.endTime || existingLesson.endTime;
             // Ensure start and end times are in the future
             this.validateLessonDates(startTime, endTime);
-            yield this.validateLessonOverlap(updatedData.instructor || existingLesson.instructor, startTime, endTime, lessonId // Exclude the current lesson from validation
+            yield this.checkExists(updatedData.instructor, updatedData.students);
+            yield this.validateLessonOverlap(startTime, endTime, lessonId // Exclude the current lesson from validation
             );
             return lesson_1.Lesson.findByIdAndUpdate(lessonId, updatedData, { new: true });
         });
@@ -72,10 +76,9 @@ class LessonService {
         }
     }
     // Validate that a lesson does not overlap with existing lessons for the same instructor
-    validateLessonOverlap(instructorId, startTime, endTime, excludeLessonId) {
+    validateLessonOverlap(startTime, endTime, excludeLessonId) {
         return __awaiter(this, void 0, void 0, function* () {
             const overlappingLessons = yield lesson_1.Lesson.find({
-                instructor: instructorId,
                 _id: { $ne: excludeLessonId }, // Exclude current lesson if updating
                 $or: [
                     {
@@ -245,6 +248,27 @@ class LessonService {
             !["group", "both_prefer_group"].includes(student.lessonPreference)) {
             throw new AppError_1.AppError("Student's preferences do not match the group lesson.", 400);
         }
+    }
+    checkExists() {
+        return __awaiter(this, arguments, void 0, function* (instructorId = undefined, studentIds = []) {
+            // Check if the instructor exists
+            if (instructorId) {
+                const instructorExists = yield instructor_1.Instructor.exists({ _id: instructorId });
+                if (!instructorExists) {
+                    throw new AppError_1.AppError('Instructor does not exist', 404);
+                }
+            }
+            if (studentIds && studentIds.length > 0) {
+                // Check if all students exist
+                const existingStudentIds = yield student_1.Student.find({
+                    _id: { $in: studentIds },
+                }).distinct('_id');
+                if (existingStudentIds.length !== studentIds.length) {
+                    const invalidIds = studentIds.filter((id) => !existingStudentIds.includes(id));
+                    throw new AppError_1.AppError(`Invalid student IDs: ${invalidIds.join(', ')}`, 404);
+                }
+            }
+        });
     }
 }
 exports.lessonService = new LessonService();

@@ -9,18 +9,17 @@ import {
 import mongoose from 'mongoose';
 import {AppError} from "../errors/AppError";
 import {instructorService} from "./instructorService";
-import {DayOfWeek} from "../models/instructor";
+import {DayOfWeek, Instructor} from "../models/instructor";
 import {studentService} from "./studentService";
-import {IStudent} from "../models/student";
+import {IStudent, Student} from "../models/student";
 
 class LessonService {
     // Add a new lesson
     async addLesson(lessonData: Omit<ILesson, '_id'>): Promise<ILesson> {
         // Ensure start and end times are in the future
         this.validateLessonDates(lessonData.startTime, lessonData.endTime);
-
+        await this.checkExists(lessonData.instructor,lessonData.students);
         await this.validateLessonOverlap(
-            lessonData.instructor,
             lessonData.startTime,
             lessonData.endTime
         );
@@ -44,9 +43,9 @@ class LessonService {
 
         // Ensure start and end times are in the future
         this.validateLessonDates(startTime, endTime);
+        await this.checkExists(updatedData.instructor,updatedData.students);
 
         await this.validateLessonOverlap(
-            updatedData.instructor || existingLesson.instructor,
             startTime,
             endTime,
             lessonId // Exclude the current lesson from validation
@@ -96,13 +95,11 @@ class LessonService {
 
     // Validate that a lesson does not overlap with existing lessons for the same instructor
     private async validateLessonOverlap(
-        instructorId: mongoose.Types.ObjectId,
         startTime: Date,
         endTime: Date,
         excludeLessonId?: string
     ): Promise<void> {
         const overlappingLessons = await Lesson.find({
-            instructor: instructorId,
             _id: {$ne: excludeLessonId}, // Exclude current lesson if updating
             $or: [
                 {
@@ -327,6 +324,32 @@ class LessonService {
             !["group", "both_prefer_group"].includes(student.lessonPreference)
         ) {
             throw new AppError("Student's preferences do not match the group lesson.", 400);
+        }
+    }
+    async checkExists(
+        instructorId: mongoose.Types.ObjectId | undefined = undefined,
+        studentIds: mongoose.Types.ObjectId[] | undefined = []
+    ): Promise<void> {
+        // Check if the instructor exists
+        if(instructorId) {
+            const instructorExists = await Instructor.exists({_id: instructorId});
+            if (!instructorExists) {
+                throw new AppError('Instructor does not exist', 404);
+            }
+        }
+        if(studentIds && studentIds.length > 0)
+        {
+        // Check if all students exist
+        const existingStudentIds = await Student.find({
+            _id: { $in: studentIds },
+        }).distinct('_id');
+
+        if (existingStudentIds.length !== studentIds.length) {
+            const invalidIds = studentIds.filter(
+                (id) => !existingStudentIds.includes(id)
+            );
+            throw new AppError(`Invalid student IDs: ${invalidIds.join(', ')}`, 404);
+        }
         }
     }
 }
