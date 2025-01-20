@@ -261,15 +261,16 @@ class LessonService {
             const currentDayName = dayNames[lessonDay];
             let assignable = false;
             let cancelable: boolean;
+            const isAssigned = this.isAssignedToLesson(student,lesson);
             try {
                 // Validate if the student can be assigned to this lesson
                 this.validateAssignment(student, lesson);
-                assignable = lesson.startTime > today && !this.isAssignedToLesson(student,lesson); // If validation succeeds, mark as assignable
+                assignable = lesson.startTime > today && !isAssigned; // If validation succeeds, mark as assignable
             } catch {
                 assignable = false; // If validation fails, the lesson is not assignable
             }
             finally {
-                cancelable= lesson.startTime > today &&  this.isAssignedToLesson(student,lesson);
+                cancelable= lesson.startTime > today &&  isAssigned;
                 console.log(cancelable);
             }
 
