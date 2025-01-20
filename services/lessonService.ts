@@ -117,7 +117,7 @@ class LessonService {
 
         if (overlappingLessons.length > 0) {
             throw new AppError(
-                'Lesson times overlap with another lesson for this instructor.', 409
+                'Lesson times overlap with another lesson.', 409
             );
         }
     }

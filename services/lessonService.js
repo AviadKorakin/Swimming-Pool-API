@@ -94,7 +94,7 @@ class LessonService {
                 ],
             });
             if (overlappingLessons.length > 0) {
-                throw new AppError_1.AppError('Lesson times overlap with another lesson for this instructor.', 409);
+                throw new AppError_1.AppError('Lesson times overlap with another lesson.', 409);
             }
         });
     }
