@@ -9,7 +9,8 @@ export interface ILesson extends Document {
     endTime: Date; // Lesson end time
     editable?: boolean; // Lesson is editable
     deletable?: boolean; // Lesson is deletable
-    assignable?: boolean;
+    assignable?: boolean;// Lesson is assignable
+    cancelable?: boolean;// Lesson is cancelable
 }
 export interface ILessonWithFlags extends Omit<ILesson, keyof mongoose.Document> {
     editable: boolean;
@@ -19,6 +20,7 @@ export interface ILessonWithFlags extends Omit<ILesson, keyof mongoose.Document>
 
 export interface ILessonWithStudentFlags extends Omit<ILesson, keyof mongoose.Document> {
     assignable: boolean;
+    cancelable: boolean;
 }
 // WeeklyLessonData Interface
 export interface WeeklyLessonData {

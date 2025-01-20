@@ -240,4 +240,40 @@ router.get('/availability', instructorController_1.findAvailableInstructors);
  *                   example: "Failed to retrieve instructor"
  */
 router.get('/:id', instructorController_1.getInstructorById);
+/**
+ * @swagger
+ * /api/lessons/available-hours:
+ *   get:
+ *     summary: Get available hours for a specific instructor on a given date
+ *     tags: [Lessons]
+ *     parameters:
+ *       - in: query
+ *         name: instructorId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the instructor
+ *       - in: query
+ *         name: date
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: The date for which to fetch available hours (e.g., "2025-01-20").
+ *     responses:
+ *       200:
+ *         description: List of available hours for the specified instructor and date
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: string
+ *                 description: Available hour in HH:mm format
+ *       400:
+ *         description: Invalid request or missing parameters
+ *       404:
+ *         description: Instructor not found or no available hours
+ */
+router.get('/available-hours', instructorController_1.getAvailableHoursForInstructor);
 exports.default = router;

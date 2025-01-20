@@ -77,6 +77,10 @@ const options = {
                         assignable: {
                             type: "boolean",
                             description: "Indicates whether the student can be assigned to this lesson."
+                        },
+                        cancelable: {
+                            type: "boolean",
+                            description: "Indicates whether the student can be assigned to this lesson."
                         }
                     },
                 },

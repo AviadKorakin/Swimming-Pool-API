@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.instructorService = void 0;
 const instructor_1 = require("../models/instructor");
 const AppError_1 = require("../errors/AppError");
+const lesson_1 = require("../models/lesson");
 class InstructorService {
     // Add a new instructor with overlap validation
     addInstructor(instructorData) {
@@ -144,6 +145,62 @@ class InstructorService {
             }
             // Extract unique days from the availableHours array
             return Array.from(new Set(instructor.availableHours.map((day) => day.day)));
+        });
+    }
+    getAvailableHoursForInstructor(instructorId, date) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Fetch instructor details
+            const instructor = yield exports.instructorService.getInstructorById(instructorId);
+            if (!instructor) {
+                throw new AppError_1.AppError("Instructor not found", 404);
+            }
+            // Convert the date to the corresponding day of the week
+            const dayOfWeek = [
+                "Sunday",
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+            ][date.getDay()];
+            // Fetch working hours for the instructor on the specified day
+            const workingHours = instructor.availableHours.filter((hour) => hour.day === dayOfWeek);
+            if (workingHours.length === 0) {
+                return []; // No working hours for the specified day
+            }
+            // Fetch lessons for the instructor on the specified date
+            const startOfDay = new Date(date);
+            startOfDay.setHours(0, 0, 0, 0);
+            const endOfDay = new Date(date);
+            endOfDay.setHours(23, 59, 59, 999);
+            const lessons = yield lesson_1.Lesson.find({
+                startTime: { $gte: startOfDay, $lte: endOfDay },
+            });
+            // Calculate available time slots
+            const bookedSlots = lessons.map((lesson) => ({
+                start: lesson.startTime.toISOString().slice(11, 16), // Extract HH:mm format
+                end: lesson.endTime.toISOString().slice(11, 16),
+            }));
+            const availableSlots = [];
+            workingHours.forEach(({ start, end }) => {
+                let currentStart = start;
+                // Iterate over booked slots and calculate gaps
+                bookedSlots
+                    .filter((slot) => slot.start >= start && slot.end <= end) // Slots within the working hours
+                    .sort((a, b) => a.start.localeCompare(b.start)) // Sort by start time
+                    .forEach((slot) => {
+                    if (currentStart < slot.start) {
+                        availableSlots.push({ start: currentStart, end: slot.start });
+                    }
+                    currentStart = slot.end; // Move current start to the end of the booked slot
+                });
+                // Add the last slot after the final booked slot
+                if (currentStart < end) {
+                    availableSlots.push({ start: currentStart, end });
+                }
+            });
+            return availableSlots;
         });
     }
 }

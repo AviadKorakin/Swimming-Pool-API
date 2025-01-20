@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findAvailableInstructors = exports.getInstructorById = exports.getAllInstructors = exports.removeInstructor = exports.updateInstructor = exports.addInstructor = void 0;
+exports.findAvailableInstructors = exports.getAvailableHoursForInstructor = exports.getInstructorById = exports.getAllInstructors = exports.removeInstructor = exports.updateInstructor = exports.addInstructor = void 0;
 const instructorService_1 = require("../services/instructorService");
 const AppError_1 = require("../errors/AppError");
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -137,6 +137,33 @@ const getInstructorById = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.getInstructorById = getInstructorById;
+const getAvailableHoursForInstructor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { instructorId, date } = req.query;
+        // Validate instructorId and date parameters
+        if (!instructorId || !mongoose_1.default.Types.ObjectId.isValid(instructorId)) {
+            res.status(400).json({ error: 'Invalid or missing instructorId parameter' });
+            return;
+        }
+        if (!date || isNaN(Date.parse(date))) {
+            res.status(400).json({ error: 'Invalid or missing date parameter' });
+            return;
+        }
+        const availableHours = yield instructorService_1.instructorService.getAvailableHoursForInstructor(instructorId, new Date(date));
+        res.status(200).json({ availableHours });
+    }
+    catch (error) {
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else {
+            res.status(400).json({
+                error: error instanceof Error ? error.message : 'Failed to retrieve available hours',
+            });
+        }
+    }
+});
+exports.getAvailableHoursForInstructor = getAvailableHoursForInstructor;
 // Find available instructors
 const findAvailableInstructors = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {

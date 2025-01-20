@@ -119,6 +119,8 @@ class StudentService {
             if (!student) {
                 throw new AppError_1.AppError('Student not found', 404);
             }
+            if (lessonService_1.lessonService.isAssignedToLesson(student, lesson))
+                throw new AppError_1.AppError("Student is already assigned to this lesson", 409);
             lessonService_1.lessonService.validateAssignment(student, lesson);
             lesson.students.push(student._id);
             yield lesson.save();

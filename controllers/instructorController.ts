@@ -3,6 +3,7 @@ import { instructorService } from '../services/instructorService';
 import { IInstructor } from '../models/instructor';
 import {AppError} from "../errors/AppError";
 import mongoose from "mongoose";
+import {lessonService} from "../services/lessonService";
 
 // Add an instructor
 export const addInstructor = async (
@@ -137,6 +138,37 @@ export const getInstructorById = async (
         res.status(400).json({
             error: error instanceof Error ? error.message : 'Failed to retrieve instructor',
         });
+    }
+};
+export const getAvailableHoursForInstructor = async (
+    req: Request<{}, {}, {}, { instructorId: string; date: string }>,
+    res: Response<{ availableHours: { start: string; end: string }[] } | { error: string }>
+): Promise<void> => {
+    try {
+        const { instructorId, date } = req.query;
+
+        // Validate instructorId and date parameters
+        if (!instructorId || !mongoose.Types.ObjectId.isValid(instructorId)) {
+            res.status(400).json({ error: 'Invalid or missing instructorId parameter' });
+            return;
+        }
+
+        if (!date || isNaN(Date.parse(date))) {
+            res.status(400).json({ error: 'Invalid or missing date parameter' });
+            return;
+        }
+
+        const availableHours = await instructorService.getAvailableHoursForInstructor(instructorId, new Date(date));
+
+        res.status(200).json({ availableHours });
+    } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        } else {
+            res.status(400).json({
+                error: error instanceof Error ? error.message : 'Failed to retrieve available hours',
+            });
+        }
     }
 };
 

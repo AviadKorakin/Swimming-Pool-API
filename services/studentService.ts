@@ -133,7 +133,8 @@ class StudentService {
         if (!student) {
             throw new AppError('Student not found',404);
         }
-
+        if(lessonService.isAssignedToLesson(student,lesson))
+            throw new AppError("Student is already assigned to this lesson", 409);
         lessonService.validateAssignment(student,lesson);
 
         lesson.students.push(student._id);
