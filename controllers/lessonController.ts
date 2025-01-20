@@ -124,11 +124,7 @@ export const getStudentWeeklyLessons = async (
     res: Response<WeeklyStudentLessonData | { error: string }>
 ): Promise<void> => {
     try {
-        console.log(req.body);
         const { date, studentId, instructorId } = req.body;
-        console.log(date);
-        console.log(studentId)
-        console.log(instructorId);
         // Validate date and studentId parameters
         if (!date || isNaN(Date.parse(date))) {
             res.status(400).json({ error: 'Invalid or missing date parameter' });
@@ -146,7 +142,6 @@ export const getStudentWeeklyLessons = async (
             : instructorId
                 ? [instructorId]
                 : undefined;
-        console.log("hello");
 
         const studentWeeklyLessons = await lessonService.getStudentWeeklyLessons(
             new Date(date),
