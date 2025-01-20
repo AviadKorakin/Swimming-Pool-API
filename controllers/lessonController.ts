@@ -120,11 +120,11 @@ export const getWeeklyLessons = async (
     }
 };
 export const getStudentWeeklyLessons = async (
-    req: Request<{}, {}, {}, { date: string; studentId: string; instructorId?: string }>,
+    req: Request<{}, {}, { date: string; studentId: string; instructorId?: string[] }>,
     res: Response<WeeklyStudentLessonData | { error: string }>
 ): Promise<void> => {
     try {
-        const { date, studentId, instructorId } = req.query;
+        const { date, studentId, instructorId } = req.body;
 
         // Validate date and studentId parameters
         if (!date || isNaN(Date.parse(date))) {
@@ -137,10 +137,17 @@ export const getStudentWeeklyLessons = async (
             return;
         }
 
+        // Ensure instructorId is an array if provided
+        const instructorIds = Array.isArray(instructorId)
+            ? instructorId
+            : instructorId
+                ? [instructorId]
+                : undefined;
+
         const studentWeeklyLessons = await lessonService.getStudentWeeklyLessons(
             new Date(date),
             studentId,
-            instructorId || undefined
+            instructorIds // Pass the array of instructor IDs
         );
 
         res.status(200).json(studentWeeklyLessons);

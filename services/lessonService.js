@@ -150,7 +150,7 @@ class LessonService {
             return groupedLessons;
         });
     }
-    getStudentWeeklyLessons(date, studentId, instructorId) {
+    getStudentWeeklyLessons(date, studentId, instructorIds) {
         return __awaiter(this, void 0, void 0, function* () {
             const student = yield studentService_1.studentService.getStudentById(studentId);
             if (!student) {
@@ -169,8 +169,8 @@ class LessonService {
                     : student.lessonPreference, // Match the student's lesson preference
                 style: { $in: student.preferredStyles }, // Match the student's preferred styles
             };
-            if (instructorId) {
-                query.instructor = instructorId; // Filter by instructor if provided
+            if (instructorIds && instructorIds.length > 0) {
+                query.instructor = { $in: instructorIds }; // Match any of the provided instructor IDs
             }
             const lessons = yield lesson_1.Lesson.find(query).populate("instructor students").exec();
             const today = new Date();

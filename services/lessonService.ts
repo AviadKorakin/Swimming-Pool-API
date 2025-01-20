@@ -203,7 +203,7 @@ class LessonService {
     async getStudentWeeklyLessons(
         date: Date,
         studentId: string,
-        instructorId?: string
+        instructorIds?: string[]
     ): Promise<WeeklyStudentLessonData> {
         const student = await studentService.getStudentById(studentId);
         if (!student) {
@@ -226,8 +226,8 @@ class LessonService {
             style: { $in: student.preferredStyles }, // Match the student's preferred styles
         };
 
-        if (instructorId) {
-            query.instructor = instructorId; // Filter by instructor if provided
+        if (instructorIds && instructorIds.length > 0) {
+            query.instructor = { $in: instructorIds }; // Match any of the provided instructor IDs
         }
 
         const lessons = await Lesson.find(query).populate("instructor students").exec();
