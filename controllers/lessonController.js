@@ -130,7 +130,11 @@ const getWeeklyLessons = (req, res) => __awaiter(void 0, void 0, void 0, functio
 exports.getWeeklyLessons = getWeeklyLessons;
 const getStudentWeeklyLessons = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log(req.body);
         const { date, studentId, instructorId } = req.body;
+        console.log(date);
+        console.log(studentId);
+        console.log(instructorId);
         // Validate date and studentId parameters
         if (!date || isNaN(Date.parse(date))) {
             res.status(400).json({ error: 'Invalid or missing date parameter' });
@@ -146,6 +150,7 @@ const getStudentWeeklyLessons = (req, res) => __awaiter(void 0, void 0, void 0, 
             : instructorId
                 ? [instructorId]
                 : undefined;
+        console.log("hello");
         const studentWeeklyLessons = yield lessonService_1.lessonService.getStudentWeeklyLessons(new Date(date), studentId, instructorIds // Pass the array of instructor IDs
         );
         res.status(200).json(studentWeeklyLessons);
