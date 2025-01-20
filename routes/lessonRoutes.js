@@ -267,5 +267,5 @@ router.get('/weekly', lessonController_1.getWeeklyLessons);
  *       404:
  *         description: Student not found.
  */
-router.get('/student-weekly', lessonController_1.getStudentWeeklyLessons);
+router.post('/student-weekly', lessonController_1.getStudentWeeklyLessons);
 exports.default = router;
