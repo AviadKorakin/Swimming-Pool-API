@@ -1,6 +1,8 @@
 import {DayOfWeek, IInstructor, Instructor, WeeklyAvailability} from '../models/instructor';
 import {AppError} from "../errors/AppError";
 import {Lesson} from "../models/lesson";
+import {LessonRequest} from "../models/LessonRequest";
+import mongoose from "mongoose";
 
 class InstructorService {
     // Add a new instructor with overlap validation
@@ -287,36 +289,47 @@ class InstructorService {
         const instructors = await Instructor.find(instructorQuery).exec();
 
         // Fetch all lessons for the week in one query
-        const lessons = await Lesson.find({
-            instructor: { $in: instructorIds },
-            startTime: { $gte: startOfWeek, $lte: endOfWeek },
-        }).exec();
+        const [lessons, lessonRequests] = await Promise.all([
+            Lesson.find({
+                instructor: { $in: instructorIds },
+                startTime: { $gte: startOfWeek, $lte: endOfWeek },
+            }).exec(),
+            LessonRequest.find({
+                instructor: { $in: instructorIds },
+                startTime: { $gte: startOfWeek, $lte: endOfWeek },
+                status: "pending", // Only consider pending requests
+            }).exec(),
+        ]);
         console.log("Fetched lessons:", lessons);
 
         // Group lessons by instructor and day of the week
-        const lessonsByInstructor: Record<
+        const allScheduledSlots: Record<
             string,
-            Record<string, { start: string; end: string }[]> // Nested grouping: instructor -> day
+            Record<string, { start: string; end: string }[]>
         > = {};
 
-        lessons.forEach((lesson) => {
-            const instructorId = lesson.instructor.toString();
-            const lessonDate = new Date(lesson.startTime);
-            const dayOfWeek = lessonDate.toISOString().slice(0, 10); // Use full date as key
+        const processSchedule = (schedule: { instructor: mongoose.Types.ObjectId; startTime: Date; endTime: Date }[]) => {
+            schedule.forEach((item) => {
+                const instructorId = item.instructor.toString();
+                const scheduleDate = new Date(item.startTime).toISOString().slice(0, 10);
 
-            if (!lessonsByInstructor[instructorId]) {
-                lessonsByInstructor[instructorId] = {};
-            }
+                if (!allScheduledSlots[instructorId]) {
+                    allScheduledSlots[instructorId] = {};
+                }
 
-            if (!lessonsByInstructor[instructorId][dayOfWeek]) {
-                lessonsByInstructor[instructorId][dayOfWeek] = [];
-            }
+                if (!allScheduledSlots[instructorId][scheduleDate]) {
+                    allScheduledSlots[instructorId][scheduleDate] = [];
+                }
 
-            lessonsByInstructor[instructorId][dayOfWeek].push({
-                start: lesson.startTime.toISOString().slice(11, 16), // HH:mm format
-                end: lesson.endTime.toISOString().slice(11, 16),
+                allScheduledSlots[instructorId][scheduleDate].push({
+                    start: item.startTime.toISOString().slice(11, 16),
+                    end: item.endTime.toISOString().slice(11, 16),
+                });
             });
-        });
+        };
+
+        processSchedule(lessons);
+        processSchedule(lessonRequests);
 
         // Prepare the result array
         const result: WeeklyAvailability[] = [];
@@ -358,16 +371,13 @@ class InstructorService {
                 ][i] as DayOfWeek;
 
                 const workingHours = instructor.availableHours.filter((hour) => hour.day === dayOfWeek);
-                console.log(`Working hours for ${dayOfWeek}:`, workingHours);
 
                 if (workingHours.length === 0) {
                     continue;
                 }
 
-                const dayLessons = lessonsByInstructor[instructor._id.toString()]?.[
-                    currentDay.toISOString().slice(0, 10)
-                    ] || [];
-                console.log(`Lessons for ${dayOfWeek} (${currentDay.toISOString().slice(0, 10)}):`, dayLessons);
+                const dayLessons =
+                    allScheduledSlots[instructor._id.toString()]?.[currentDay.toISOString().slice(0, 10)] || [];
 
                 const availableHours: { start: string; end: string }[] = [];
 
