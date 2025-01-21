@@ -2,6 +2,7 @@ import {LessonRequest, ILessonRequest, RequestLessonFilter} from "../models/Less
 import { AppError } from "../errors/AppError";
 import { lessonService } from "./lessonService";
 import { Lesson } from "../models/lesson";
+import mongoose from "mongoose";
 
 class LessonRequestService {
     // Add a new lesson request
@@ -10,13 +11,22 @@ class LessonRequestService {
         requestData.startTime= new Date(requestData.startTime);
         requestData.endTime= new Date(requestData.endTime);
 
-        await lessonService.validateLessonParticipants(
-            requestData.instructor,
-            requestData.students,
-            requestData.style,
-            requestData.type
-        );
         lessonService.validateLessonDates(requestData.startTime, requestData.endTime);
+
+        // Run validations concurrently using Promise.all
+        await Promise.all([
+            lessonService.validateLessonParticipants(
+                requestData.instructor,
+                requestData.students,
+                requestData.style,
+                requestData.type
+            ),
+            this.validateNoOverlappingRequests(
+                requestData.instructor,
+                requestData.startTime,
+                requestData.endTime
+            ),
+        ]);
 
         // Create and save the lesson request
         const lessonRequest = new LessonRequest(requestData);
@@ -136,6 +146,36 @@ class LessonRequestService {
             return true; // If validation passes, request is canApprove
         } catch {
             return false; // If validation fails, request is not canApprove
+        }
+    }
+
+    // Validate no overlapping requests
+    private async validateNoOverlappingRequests(
+        instructorId: mongoose.Types.ObjectId,
+        startTime: Date,
+        endTime: Date
+    ): Promise<void> {
+        const overlappingRequest = await LessonRequest.findOne({
+            instructor: instructorId,
+            $or: [
+                {
+                    startTime: { $lt: endTime }, // Starts before the new request ends
+                    endTime: { $gt: startTime }, // Ends after the new request starts
+                },
+                {
+                    startTime: { $gte: startTime, $lte: endTime }, // New request includes existing request
+                },
+                {
+                    endTime: { $gte: startTime, $lte: endTime }, // Existing request includes new request
+                },
+            ],
+        });
+
+        if (overlappingRequest) {
+            throw new AppError(
+                "The instructor already has a lesson request during the specified time range.",
+                400
+            );
         }
     }
 
