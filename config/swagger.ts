@@ -21,6 +21,54 @@ const options = {
                 },
             },
             schemas: {
+                LessonRequestRequest: {
+                    type: "object",
+                    properties: {
+                        instructor: { type: "string", description: "Instructor ID" },
+                        students: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: "List of Student IDs"
+                        },
+                        style: { type: "string", description: "Swimming style" },
+                        type: {
+                            type: "string",
+                            enum: ["private", "group"],
+                            description: "Lesson type"
+                        },
+                        startTime: { type: "string", format: "date-time", description: "Lesson start time" },
+                        endTime: { type: "string", format: "date-time", description: "Lesson end time" }
+                    },
+                    required: ["instructor", "style", "type", "startTime", "endTime"],
+                    description: "Request structure for creating or updating a Lesson Request, excluding the ID."
+                },
+                LessonRequestResponse: {
+                    type: "object",
+                    properties: {
+                        _id: { type: "string", description: "Unique identifier for the Lesson Request" },
+                        instructor: { type: "string", description: "Instructor ID" },
+                        students: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: "List of Student IDs"
+                        },
+                        style: { type: "string", description: "Swimming style" },
+                        type: {
+                            type: "string",
+                            enum: ["private", "group"],
+                            description: "Lesson type"
+                        },
+                        startTime: { type: "string", format: "date-time", description: "Lesson start time" },
+                        endTime: { type: "string", format: "date-time", description: "Lesson end time" },
+                        status: {
+                            type: "string",
+                            enum: ["pending", "approved", "rejected"],
+                            description: "Current status of the lesson request"
+                        }
+                    },
+                    description: "Response structure for Lesson Requests, including the unique identifier and status."
+                },
+
                 WeeklyStudentLessonData: {
                     type: "object",
                     properties: {

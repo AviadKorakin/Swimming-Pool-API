@@ -13,35 +13,128 @@ exports.lessonService = void 0;
 const lesson_1 = require("../models/lesson");
 const AppError_1 = require("../errors/AppError");
 const instructorService_1 = require("./instructorService");
-const instructor_1 = require("../models/instructor");
 const studentService_1 = require("./studentService");
-const student_1 = require("../models/student");
 class LessonService {
     // Add a new lesson
     addLesson(lessonData) {
         return __awaiter(this, void 0, void 0, function* () {
             // Ensure start and end times are in the future
             this.validateLessonDates(lessonData.startTime, lessonData.endTime);
-            yield this.checkExists(lessonData.instructor, lessonData.students);
-            yield this.validateLessonOverlap(lessonData.startTime, lessonData.endTime);
+            // //Check lesson participants match the lesson
+            // await this.validateLessonParticipants(lessonData.instructor, lessonData.students,lessonData.style,lessonData.type);
+            // // Validate the lesson fits within the instructor's available hours
+            // await this.validateInstructorAvailability(
+            //     lessonData.instructor,
+            //     lessonData.startTime,
+            //     lessonData.endTime
+            // );
+            // // validate no overlaps in the pool lessons schedule
+            // await this.validateLessonOverlap(
+            //     lessonData.startTime,
+            //     lessonData.endTime
+            // );
+            yield Promise.all([
+                //Check lesson participants match the lesson
+                this.validateLessonParticipants(lessonData.instructor, lessonData.students, lessonData.style, lessonData.type),
+                // Validate the lesson fits within the instructor's available hours
+                this.validateInstructorAvailability(lessonData.instructor, lessonData.startTime, lessonData.endTime),
+                // validate no overlaps in the pool lessons schedule
+                this.validateLessonOverlap(lessonData.startTime, lessonData.endTime),
+            ]);
             const lesson = new lesson_1.Lesson(lessonData);
             return yield lesson.save();
         });
     }
     // Update an existing lesson
+    // async updateLesson(
+    //     lessonId: string,
+    //     updatedData: Partial<ILesson>
+    // ): Promise<ILesson | null> {
+    //     // Fetch the existing lesson
+    //     const existingLesson = await Lesson.findById(lessonId).lean();
+    //     if (!existingLesson) {
+    //         throw new AppError('Lesson not found', 404);
+    //     }
+    //
+    //     // Merge existing data with updates
+    //     const mergedLessonData: ILesson = {
+    //         ...existingLesson.toObject(),
+    //         ...updatedData,
+    //     };
+    //
+    //     // Ensure start and end times are valid
+    //     const startTime = mergedLessonData.startTime;
+    //     const endTime = mergedLessonData.endTime;
+    //
+    //     this.validateLessonDates(startTime, endTime);
+    //
+    //     // Validate instructor and students if related fields are being updated
+    //     const instructorChanged = updatedData.instructor !== undefined;
+    //     const studentsChanged = updatedData.students !== undefined;
+    //     const styleChanged = updatedData.style !== undefined;
+    //     const typeChanged = updatedData.type !== undefined;
+    //
+    //     if (instructorChanged || studentsChanged || styleChanged || typeChanged) {
+    //         await this.validateLessonParticipants(
+    //             mergedLessonData.instructor,
+    //             mergedLessonData.students,
+    //             mergedLessonData.style,
+    //             mergedLessonData.type
+    //         );
+    //     }
+    //
+    //     // Validate the lesson fits within the instructor's available hours if time or instructor changes
+    //     if (instructorChanged || startTime !== existingLesson.startTime || endTime !== existingLesson.endTime) {
+    //         await this.validateInstructorAvailability(
+    //             mergedLessonData.instructor,
+    //             startTime,
+    //             endTime
+    //         );
+    //     }
+    //
+    //     // Validate no overlaps in the schedule
+    //     await this.validateLessonOverlap(
+    //         startTime,
+    //         endTime,
+    //         lessonId // Exclude the current lesson
+    //     );
+    //
+    //     // Update the lesson in the database
+    //     return Lesson.findByIdAndUpdate(lessonId, updatedData, { new: true });
+    // }
+    // Update an existing lesson
     updateLesson(lessonId, updatedData) {
         return __awaiter(this, void 0, void 0, function* () {
-            const existingLesson = yield lesson_1.Lesson.findById(lessonId);
+            // Fetch the existing lesson
+            const existingLesson = yield lesson_1.Lesson.findById(lessonId).lean();
             if (!existingLesson) {
                 throw new AppError_1.AppError('Lesson not found', 404);
             }
-            const startTime = updatedData.startTime || existingLesson.startTime;
-            const endTime = updatedData.endTime || existingLesson.endTime;
-            // Ensure start and end times are in the future
+            // Merge existing data with updates
+            const mergedLessonData = Object.assign(Object.assign({}, existingLesson), updatedData);
+            // Extract updated fields for validation
+            const { startTime, endTime, instructor, students, style, type } = mergedLessonData;
+            // Use Promise.all to validate concurrently
+            const validationTasks = [];
             this.validateLessonDates(startTime, endTime);
-            yield this.checkExists(updatedData.instructor, updatedData.students);
-            yield this.validateLessonOverlap(startTime, endTime, lessonId // Exclude the current lesson from validation
-            );
+            // Validate instructor, students, style, and type if they were updated
+            if (updatedData.instructor !== undefined ||
+                updatedData.students !== undefined ||
+                updatedData.style !== undefined ||
+                updatedData.type !== undefined) {
+                validationTasks.push(this.validateLessonParticipants(instructor, students, style, type));
+            }
+            // Validate the lesson's time availability for the instructor
+            if (updatedData.instructor !== undefined ||
+                updatedData.startTime !== undefined ||
+                updatedData.endTime !== undefined) {
+                validationTasks.push(this.validateInstructorAvailability(instructor, startTime, endTime));
+            }
+            // Validate no overlaps with other lessons
+            validationTasks.push(this.validateLessonOverlap(startTime, endTime, lessonId));
+            // Execute all validation tasks concurrently
+            yield Promise.all(validationTasks);
+            // Update the lesson in the database
             return lesson_1.Lesson.findByIdAndUpdate(lessonId, updatedData, { new: true });
         });
     }
@@ -112,8 +205,12 @@ class LessonService {
             if (sort && instructorId) {
                 query.instructor = instructorId;
             }
-            const lessons = yield lesson_1.Lesson.find(query).populate('instructor students').exec();
-            const instructorWorkingDays = instructorId ? yield instructorService_1.instructorService.getInstructorWorkingDays(instructorId) : [];
+            const [lessons, instructorWorkingDays] = yield Promise.all([
+                lesson_1.Lesson.find(query).populate('instructor students').exec(),
+                instructorId
+                    ? instructorService_1.instructorService.getInstructorWorkingDays(instructorId)
+                    : Promise.resolve([]), // Explicitly use Promise.resolve([]) for consistent typing
+            ]);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const dayNames = [
@@ -196,6 +293,15 @@ class LessonService {
                 };
                 return acc;
             }, {});
+            const nextWeekStart = new Date(today); // Start of next week
+            nextWeekStart.setDate(today.getDate() + (7 - today.getDay())); // Move to next week's Sunday
+            nextWeekStart.setHours(0, 0, 0, 0);
+            const nextWeekEnd = new Date(nextWeekStart); // End of next week
+            nextWeekEnd.setDate(nextWeekStart.getDate() + 6); // Next week's Saturday
+            nextWeekEnd.setHours(23, 59, 59, 999);
+            const cancelableThreshold = new Date(today); // 2 days from today
+            cancelableThreshold.setDate(today.getDate() + 2);
+            cancelableThreshold.setHours(0, 0, 0, 0);
             lessons.forEach((lesson) => {
                 const lessonDay = new Date(lesson.startTime).getDay();
                 const currentDayName = dayNames[lessonDay];
@@ -206,7 +312,8 @@ class LessonService {
                     // Validate if the student can be assigned to this lesson
                     if (!isAssigned) {
                         this.validateAssignment(student, lesson);
-                        assignable = lesson.startTime > today; // If validation succeeds, mark as assignable
+                        // Check if the lesson falls in the next week
+                        assignable = lesson.startTime >= nextWeekStart && lesson.startTime <= nextWeekEnd; // If validation succeeds and lesson is next week, mark as assignable
                     }
                     else {
                         assignable = false;
@@ -216,7 +323,8 @@ class LessonService {
                     assignable = false; // If validation fails, the lesson is not assignable
                 }
                 finally {
-                    cancelable = lesson.startTime > today && isAssigned;
+                    // Check if lesson is cancelable (more than 2 days from today)
+                    cancelable = lesson.startTime > cancelableThreshold && isAssigned;
                 }
                 const lessonWithFlags = Object.assign(Object.assign({}, lesson.toObject()), { assignable: assignable, cancelable: cancelable });
                 groupedLessons[currentDayName].lessons.push(lessonWithFlags);
@@ -249,24 +357,40 @@ class LessonService {
             throw new AppError_1.AppError("Student's preferences do not match the group lesson.", 400);
         }
     }
-    checkExists() {
-        return __awaiter(this, arguments, void 0, function* (instructorId = undefined, studentIds = []) {
-            // Check if the instructor exists
+    validateLessonParticipants(instructorId, studentIds, style, type) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Array to collect validation promises
+            const validationPromises = [];
+            // Validate the instructor
             if (instructorId) {
-                const instructorExists = yield instructor_1.Instructor.exists({ _id: instructorId });
-                if (!instructorExists) {
-                    throw new AppError_1.AppError('Instructor does not exist', 404);
-                }
+                validationPromises.push(instructorService_1.instructorService.validateInstructorForLesson(instructorId.toString(), style));
             }
-            if (studentIds && studentIds.length > 0) {
-                // Check if all students exist
-                const existingStudentIds = yield student_1.Student.find({
-                    _id: { $in: studentIds },
-                }).distinct('_id');
-                if (existingStudentIds.length !== studentIds.length) {
-                    const invalidIds = studentIds.filter((id) => !existingStudentIds.includes(id));
-                    throw new AppError_1.AppError(`Invalid student IDs: ${invalidIds.join(', ')}`, 404);
-                }
+            // Validate the students
+            if (studentIds.length > 0) {
+                validationPromises.push(studentService_1.studentService.validateStudentsForLesson(studentIds, style, type));
+            }
+            // Use Promise.all to execute validations in parallel
+            yield Promise.all(validationPromises);
+        });
+    }
+    validateInstructorAvailability(instructorId, startTime, endTime) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // If any of the parameters are undefined, skip validation
+            if (!instructorId || !startTime || !endTime) {
+                return;
+            }
+            // Fetch available hours for the instructor on the given date
+            const availableHours = yield instructorService_1.instructorService.getAvailableHoursForInstructor(instructorId.toString(), startTime);
+            if (availableHours.length === 0) {
+                throw new AppError_1.AppError("Instructor is not available on the selected date", 400);
+            }
+            // Convert startTime and endTime to HH:mm format
+            const start = startTime.toISOString().slice(11, 16);
+            const end = endTime.toISOString().slice(11, 16);
+            // Check if the time range fits within any of the available slots
+            const isValid = availableHours.some((slot) => start >= slot.start && end <= slot.end);
+            if (!isValid) {
+                throw new AppError_1.AppError("Lesson timing does not fit within the instructor's available hours", 400);
             }
         });
     }

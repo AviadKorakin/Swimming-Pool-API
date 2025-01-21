@@ -2,6 +2,7 @@ import {Student, IStudent, StudentFilter} from '../models/student';
 import {Lesson} from "../models/lesson";
 import {AppError} from "../errors/AppError";
 import {lessonService} from "./lessonService";
+import mongoose from "mongoose";
 class StudentService {
 
     // Add a new student
@@ -166,6 +167,55 @@ class StudentService {
         await lesson.save();
 
         return student;
+    }
+
+    // Validate students for a specific lesson
+    async validateStudentsForLesson(
+        studentIds: mongoose.Types.ObjectId[],
+        style: string,
+        type: 'private' | 'group'
+    ): Promise<void> {
+        const students = await Student.find({ _id: { $in: studentIds } });
+
+        // Ensure all students exist
+        if (students.length !== studentIds.length) {
+            const invalidIds = studentIds.filter(
+                (id) => !students.some((student) => student._id.equals(id))
+            );
+            throw new AppError(`Invalid student IDs: ${invalidIds.join(', ')}`, 404);
+        }
+
+        // Validate each student's preferences
+        students.forEach((student) => {
+            // Style compatibility
+            if (!student.preferredStyles.includes(style)) {
+                throw new AppError(
+                    `Student ${student.firstName} ${student.lastName}'s preferences do not match the selected style: ${style}`,
+                    400
+                );
+            }
+
+            // Type compatibility
+            if (
+                type === 'private' &&
+                !['private', 'both_prefer_private'].includes(student.lessonPreference)
+            ) {
+                throw new AppError(
+                    `Student ${student.firstName} ${student.lastName}'s preferences do not match the private lesson type.`,
+                    400
+                );
+            }
+
+            if (
+                type === 'group' &&
+                !['group', 'both_prefer_group'].includes(student.lessonPreference)
+            ) {
+                throw new AppError(
+                    `Student ${student.firstName} ${student.lastName}'s preferences do not match the group lesson type.`,
+                    400
+                );
+            }
+        });
     }
 
 

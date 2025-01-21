@@ -123,6 +123,7 @@ class InstructorService {
     ): Promise<{ instructors: IInstructor[]; total: number }> {
         const total = await Instructor.countDocuments();
         const instructors = await Instructor.find()
+            .sort({ name: 1 })
             .skip((page - 1) * limit)
             .limit(limit)
             .exec();
@@ -229,6 +230,26 @@ class InstructorService {
 
         return availableSlots;
     }
+
+    // Validate instructor for a specific lesson
+    async validateInstructorForLesson(
+        instructorId: string,
+        style: string
+    ): Promise<void> {
+        const instructor = await this.getInstructorById(instructorId);
+        if (!instructor) {
+            throw new AppError('Instructor does not exist', 404);
+        }
+
+        // Ensure the instructor has expertise in the requested style
+        if (!instructor.expertise.includes(style)) {
+            throw new AppError(
+                `Instructor does not have expertise in the selected style: ${style}`,
+                400
+            );
+        }
+    }
+
 }
 
 export const instructorService = new InstructorService();

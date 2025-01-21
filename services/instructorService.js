@@ -109,6 +109,7 @@ class InstructorService {
         return __awaiter(this, arguments, void 0, function* (page = 1, limit = 10) {
             const total = yield instructor_1.Instructor.countDocuments();
             const instructors = yield instructor_1.Instructor.find()
+                .sort({ name: 1 })
                 .skip((page - 1) * limit)
                 .limit(limit)
                 .exec();
@@ -201,6 +202,19 @@ class InstructorService {
                 }
             });
             return availableSlots;
+        });
+    }
+    // Validate instructor for a specific lesson
+    validateInstructorForLesson(instructorId, style) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const instructor = yield this.getInstructorById(instructorId);
+            if (!instructor) {
+                throw new AppError_1.AppError('Instructor does not exist', 404);
+            }
+            // Ensure the instructor has expertise in the requested style
+            if (!instructor.expertise.includes(style)) {
+                throw new AppError_1.AppError(`Instructor does not have expertise in the selected style: ${style}`, 400);
+            }
         });
     }
 }
