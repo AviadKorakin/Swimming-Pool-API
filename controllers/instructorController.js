@@ -149,7 +149,7 @@ const getAvailableHoursForInstructor = (req, res) => __awaiter(void 0, void 0, v
             res.status(400).json({ error: 'Invalid or missing date parameter' });
             return;
         }
-        console.log("date before availble hours" + date);
+        console.log("date before available hours" + date);
         const availableHours = yield instructorService_1.instructorService.getAvailableHoursForInstructor(instructorId, new Date(date));
         res.status(200).json({ availableHours });
     }
@@ -200,15 +200,18 @@ const getWeeklyAvailableHours = (req, res) => __awaiter(void 0, void 0, void 0, 
             res.status(400).json({ error: "Styles parameter is required and cannot be empty" });
             return;
         }
-        if (!instructorIds || !Array.isArray(instructorIds) || instructorIds.length === 0) {
-            res.status(400).json({ error: "Instructor IDs parameter is required and cannot be empty" });
+        // Validate the `instructorIds` parameter, if provided
+        if (instructorIds && !Array.isArray(instructorIds)) {
+            res.status(400).json({ error: "Instructor IDs parameter must be an array if provided" });
             return;
         }
-        // Ensure all instructor IDs are valid MongoDB ObjectIds
-        const invalidIds = instructorIds.filter((id) => !mongoose_1.default.Types.ObjectId.isValid(id));
-        if (invalidIds.length > 0) {
-            res.status(400).json({ error: `Invalid instructor IDs: ${invalidIds.join(", ")}` });
-            return;
+        // Check for invalid instructor IDs, if provided
+        if (instructorIds && instructorIds.length > 0) {
+            const invalidIds = instructorIds.filter((id) => !mongoose_1.default.Types.ObjectId.isValid(id));
+            if (invalidIds.length > 0) {
+                res.status(400).json({ error: `Invalid instructor IDs: ${invalidIds.join(", ")}` });
+                return;
+            }
         }
         // Call the service method
         const weeklyAvailability = yield instructorService_1.instructorService.getWeeklyAvailableHours(new Date(date), styles, instructorIds);

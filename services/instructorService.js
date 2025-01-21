@@ -220,11 +220,6 @@ class InstructorService {
     getWeeklyAvailableHours(date, styles, instructorIds) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
-            console.log("Input parameters:", {
-                date,
-                styles,
-                instructorIds,
-            });
             // Get the current date and move to the start of the next week (Sunday)
             const now = new Date();
             const nextWeekStart = new Date(now);
@@ -245,9 +240,11 @@ class InstructorService {
             endOfWeek.setDate(startOfWeek.getDate() + 6); // Move to Saturday
             endOfWeek.setHours(23, 59, 59, 999);
             console.log("End of the week:", endOfWeek);
-            // Fetch all instructors
-            const instructors = yield instructor_1.Instructor.find({ _id: { $in: instructorIds } }).exec();
-            console.log("Fetched instructors:", instructors);
+            // Fetch all instructors or filter by instructorIds if provided
+            const instructorQuery = instructorIds && instructorIds.length > 0
+                ? { _id: { $in: instructorIds } }
+                : {}; // Fetch all instructors if instructorIds are not provided
+            const instructors = yield instructor_1.Instructor.find(instructorQuery).exec();
             // Fetch all lessons for the week in one query
             const lessons = yield lesson_1.Lesson.find({
                 instructor: { $in: instructorIds },
@@ -271,7 +268,6 @@ class InstructorService {
                     end: lesson.endTime.toISOString().slice(11, 16),
                 });
             });
-            console.log("Grouped lessons by instructor:", lessonsByInstructor);
             // Prepare the result array
             const result = [];
             // Process each instructor
@@ -327,14 +323,12 @@ class InstructorService {
                     });
                     weeklyHours.push({ day: dayOfWeek, availableHours });
                 }
-                console.log(`Weekly hours for instructor ${instructor._id}:`, weeklyHours);
                 result.push({
                     instructorId: instructor._id.toString(),
                     instructorName: instructor.name,
                     weeklyHours,
                 });
             }
-            console.log("Final result:", result);
             return result;
         });
     }

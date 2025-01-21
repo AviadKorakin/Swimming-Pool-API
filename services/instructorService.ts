@@ -252,13 +252,8 @@ class InstructorService {
     async getWeeklyAvailableHours(
         date: Date,
         styles: string[],
-        instructorIds: string[]
+        instructorIds?: string[]
     ): Promise<WeeklyAvailability[]> {
-        console.log("Input parameters:", {
-            date,
-            styles,
-            instructorIds,
-        });
 
         // Get the current date and move to the start of the next week (Sunday)
         const now = new Date();
@@ -285,9 +280,11 @@ class InstructorService {
         endOfWeek.setHours(23, 59, 59, 999);
         console.log("End of the week:", endOfWeek);
 
-        // Fetch all instructors
-        const instructors = await Instructor.find({ _id: { $in: instructorIds } }).exec();
-        console.log("Fetched instructors:", instructors);
+        // Fetch all instructors or filter by instructorIds if provided
+        const instructorQuery = instructorIds && instructorIds.length > 0
+            ? { _id: { $in: instructorIds } }
+            : {}; // Fetch all instructors if instructorIds are not provided
+        const instructors = await Instructor.find(instructorQuery).exec();
 
         // Fetch all lessons for the week in one query
         const lessons = await Lesson.find({
@@ -320,7 +317,6 @@ class InstructorService {
                 end: lesson.endTime.toISOString().slice(11, 16),
             });
         });
-        console.log("Grouped lessons by instructor:", lessonsByInstructor);
 
         // Prepare the result array
         const result: WeeklyAvailability[] = [];
@@ -396,7 +392,6 @@ class InstructorService {
                 weeklyHours.push({ day: dayOfWeek, availableHours });
             }
 
-            console.log(`Weekly hours for instructor ${instructor._id}:`, weeklyHours);
 
             result.push({
                 instructorId: instructor._id.toString(),
@@ -405,7 +400,6 @@ class InstructorService {
             });
         }
 
-        console.log("Final result:", result);
         return result;
     }
 

@@ -3,7 +3,6 @@ import { instructorService } from '../services/instructorService';
 import {IInstructor, WeeklyAvailability} from '../models/instructor';
 import {AppError} from "../errors/AppError";
 import mongoose from "mongoose";
-import {lessonService} from "../services/lessonService";
 
 // Add an instructor
 export const addInstructor = async (
@@ -157,7 +156,7 @@ export const getAvailableHoursForInstructor = async (
             res.status(400).json({ error: 'Invalid or missing date parameter' });
             return;
         }
-        console.log("date before availble hours" + date);
+        console.log("date before available hours" + date);
 
         const availableHours = await instructorService.getAvailableHoursForInstructor(instructorId, new Date(date));
 
@@ -201,7 +200,7 @@ export const findAvailableInstructors = async (
 
 // Get weekly available hours for instructors
 export const getWeeklyAvailableHours = async (
-    req: Request<{}, {}, { date: string; styles: string[]; instructorIds: string[] }>,
+    req: Request<{}, {}, { date: string; styles: string[]; instructorIds?: string[] }>,
     res: Response<{ weeklyAvailability: WeeklyAvailability[] } | { error: string }>
 ): Promise<void> => {
     try {
@@ -218,18 +217,20 @@ export const getWeeklyAvailableHours = async (
             return;
         }
 
-        if (!instructorIds || !Array.isArray(instructorIds) || instructorIds.length === 0) {
-            res.status(400).json({ error: "Instructor IDs parameter is required and cannot be empty" });
+        // Validate the `instructorIds` parameter, if provided
+        if (instructorIds && !Array.isArray(instructorIds)) {
+            res.status(400).json({ error: "Instructor IDs parameter must be an array if provided" });
             return;
         }
 
-        // Ensure all instructor IDs are valid MongoDB ObjectIds
-        const invalidIds = instructorIds.filter((id) => !mongoose.Types.ObjectId.isValid(id));
-        if (invalidIds.length > 0) {
-            res.status(400).json({ error: `Invalid instructor IDs: ${invalidIds.join(", ")}` });
-            return;
+        // Check for invalid instructor IDs, if provided
+        if (instructorIds && instructorIds.length > 0) {
+            const invalidIds = instructorIds.filter((id) => !mongoose.Types.ObjectId.isValid(id));
+            if (invalidIds.length > 0) {
+                res.status(400).json({ error: `Invalid instructor IDs: ${invalidIds.join(", ")}` });
+                return;
+            }
         }
-
         // Call the service method
         const weeklyAvailability = await instructorService.getWeeklyAvailableHours(
             new Date(date),
