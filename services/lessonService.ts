@@ -18,6 +18,10 @@ class LessonService {
     // Add a new lesson
     async addLesson(lessonData: Omit<ILesson, '_id'>): Promise<ILesson> {
         // Ensure start and end times are in the future
+
+        lessonData.startTime= new Date(lessonData.startTime);
+        lessonData.endTime= new Date(lessonData.endTime);
+
         this.validateLessonDates(lessonData.startTime, lessonData.endTime);
         // //Check lesson participants match the lesson
         // await this.validateLessonParticipants(lessonData.instructor, lessonData.students,lessonData.style,lessonData.type);
@@ -43,8 +47,8 @@ class LessonService {
             // Validate the lesson fits within the instructor's available hours
             this.validateInstructorAvailability(
                 lessonData.instructor,
-                new Date(lessonData.startTime),
-                new Date(lessonData.endTime)
+                lessonData.startTime,
+                lessonData.endTime,
             ),
             // validate no overlaps in the pool lessons schedule
             this.validateLessonOverlap(lessonData.startTime, lessonData.endTime),
@@ -123,6 +127,10 @@ class LessonService {
         if (!existingLesson) {
             throw new AppError('Lesson not found', 404);
         }
+        if(updatedData.startTime)
+        updatedData.startTime= new Date(updatedData.startTime);
+        if(updatedData.endTime)
+        updatedData.endTime= new Date(updatedData.endTime);
 
         // Merge existing data with updates
         const mergedLessonData: ILesson = {
@@ -157,7 +165,7 @@ class LessonService {
             updatedData.endTime !== undefined
         ) {
             validationTasks.push(
-                this.validateInstructorAvailability(instructor, new Date(startTime), new Date(endTime))
+                this.validateInstructorAvailability(instructor, startTime, endTime)
             );
         }
 

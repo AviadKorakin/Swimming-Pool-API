@@ -18,38 +18,31 @@ class LessonService {
     // Add a new lesson
     addLesson(lessonData) {
         return __awaiter(this, void 0, void 0, function* () {
-            try {
-                // Ensure start and end times are in the future
-                this.validateLessonDates(lessonData.startTime, lessonData.endTime);
-            }
-            catch (error) {
-                console.error('Error in validateLessonDates:', error);
-                throw error; // Re-throw after logging
-            }
-            try {
-                // Check lesson participants match the lesson
-                yield this.validateLessonParticipants(lessonData.instructor, lessonData.students, lessonData.style, lessonData.type);
-            }
-            catch (error) {
-                console.error('Error in validateLessonParticipants:', error);
-                throw error; // Re-throw after logging
-            }
-            try {
+            // Ensure start and end times are in the future
+            lessonData.startTime = new Date(lessonData.startTime);
+            lessonData.endTime = new Date(lessonData.endTime);
+            this.validateLessonDates(lessonData.startTime, lessonData.endTime);
+            // //Check lesson participants match the lesson
+            // await this.validateLessonParticipants(lessonData.instructor, lessonData.students,lessonData.style,lessonData.type);
+            // // Validate the lesson fits within the instructor's available hours
+            // await this.validateInstructorAvailability(
+            //     lessonData.instructor,
+            //     lessonData.startTime,
+            //     lessonData.endTime
+            // );
+            // // validate no overlaps in the pool lessons schedule
+            // await this.validateLessonOverlap(
+            //     lessonData.startTime,
+            //     lessonData.endTime
+            // );
+            yield Promise.all([
+                //Check lesson participants match the lesson
+                this.validateLessonParticipants(lessonData.instructor, lessonData.students, lessonData.style, lessonData.type),
                 // Validate the lesson fits within the instructor's available hours
-                yield this.validateInstructorAvailability(lessonData.instructor, new Date(lessonData.startTime), new Date(lessonData.endTime));
-            }
-            catch (error) {
-                console.error('Error in validateInstructorAvailability:', error);
-                throw error; // Re-throw after logging
-            }
-            try {
-                // Validate no overlaps in the pool lessons schedule
-                yield this.validateLessonOverlap(lessonData.startTime, lessonData.endTime);
-            }
-            catch (error) {
-                console.error('Error in validateLessonOverlap:', error);
-                throw error; // Re-throw after logging
-            }
+                this.validateInstructorAvailability(lessonData.instructor, lessonData.startTime, lessonData.endTime),
+                // validate no overlaps in the pool lessons schedule
+                this.validateLessonOverlap(lessonData.startTime, lessonData.endTime),
+            ]);
             const lesson = new lesson_1.Lesson(lessonData);
             return yield lesson.save();
         });
@@ -119,6 +112,10 @@ class LessonService {
             if (!existingLesson) {
                 throw new AppError_1.AppError('Lesson not found', 404);
             }
+            if (updatedData.startTime)
+                updatedData.startTime = new Date(updatedData.startTime);
+            if (updatedData.endTime)
+                updatedData.endTime = new Date(updatedData.endTime);
             // Merge existing data with updates
             const mergedLessonData = Object.assign(Object.assign({}, existingLesson), updatedData);
             // Extract updated fields for validation
@@ -388,7 +385,6 @@ class LessonService {
             if (!instructorId || !startTime || !endTime) {
                 return;
             }
-            console.log("start time" + startTime);
             // Fetch available hours for the instructor on the given date
             const availableHours = yield instructorService_1.instructorService.getAvailableHoursForInstructor(instructorId.toString(), startTime);
             if (availableHours.length === 0) {
