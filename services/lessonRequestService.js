@@ -19,6 +19,8 @@ class LessonRequestService {
     addRequest(requestData) {
         return __awaiter(this, void 0, void 0, function* () {
             // Validate participants and times
+            requestData.startTime = new Date(requestData.startTime);
+            requestData.endTime = new Date(requestData.endTime);
             yield lessonService_1.lessonService.validateLessonParticipants(requestData.instructor, requestData.students, requestData.style, requestData.type);
             lessonService_1.lessonService.validateLessonDates(requestData.startTime, requestData.endTime);
             // Create and save the lesson request

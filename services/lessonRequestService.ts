@@ -7,6 +7,9 @@ class LessonRequestService {
     // Add a new lesson request
     async addRequest(requestData: Omit<ILessonRequest, "_id">): Promise<ILessonRequest> {
         // Validate participants and times
+        requestData.startTime= new Date(requestData.startTime);
+        requestData.endTime= new Date(requestData.endTime);
+
         await lessonService.validateLessonParticipants(
             requestData.instructor,
             requestData.students,
