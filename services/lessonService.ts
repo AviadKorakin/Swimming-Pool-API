@@ -510,7 +510,7 @@ class LessonService {
         if (!instructorId || !startTime || !endTime) {
             return;
         }
-
+        console.log("start time"+ startTime);
         // Fetch available hours for the instructor on the given date
         const availableHours = await instructorService.getAvailableHoursForInstructor(
             instructorId.toString(),

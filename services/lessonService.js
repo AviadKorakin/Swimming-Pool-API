@@ -388,6 +388,7 @@ class LessonService {
             if (!instructorId || !startTime || !endTime) {
                 return;
             }
+            console.log("start time" + startTime);
             // Fetch available hours for the instructor on the given date
             const availableHours = yield instructorService_1.instructorService.getAvailableHoursForInstructor(instructorId.toString(), startTime);
             if (availableHours.length === 0) {
