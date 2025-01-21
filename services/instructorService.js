@@ -155,6 +155,7 @@ class InstructorService {
             if (!instructor) {
                 throw new AppError_1.AppError("Instructor not found", 404);
             }
+            console.log(instructorId, date);
             // Convert the date to the corresponding day of the week
             const dayOfWeek = [
                 "Sunday",

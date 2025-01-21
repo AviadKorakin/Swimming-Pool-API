@@ -157,6 +157,7 @@ export const getAvailableHoursForInstructor = async (
             res.status(400).json({ error: 'Invalid or missing date parameter' });
             return;
         }
+        console.log("date before availble hours" + date);
 
         const availableHours = await instructorService.getAvailableHoursForInstructor(instructorId, new Date(date));
 

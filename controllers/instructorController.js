@@ -149,6 +149,7 @@ const getAvailableHoursForInstructor = (req, res) => __awaiter(void 0, void 0, v
             res.status(400).json({ error: 'Invalid or missing date parameter' });
             return;
         }
+        console.log("date before availble hours" + date);
         const availableHours = yield instructorService_1.instructorService.getAvailableHoursForInstructor(instructorId, new Date(date));
         res.status(200).json({ availableHours });
     }
