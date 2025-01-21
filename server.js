@@ -75,6 +75,7 @@ app.use('/api/students', studentRoutes_1.default);
 app.use('/api/instructors', instructorRoutes_1.default);
 app.use('/api/lessons', lessonRoutes_1.default);
 app.use('/api/users', userRoutes_1.default);
+app.use('/api/lesson-requests', lessonRoutes_1.default);
 // Setup Swagger UI
 (0, swagger_1.setupSwagger)(app);
 /**

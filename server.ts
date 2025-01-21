@@ -68,7 +68,8 @@ app.get('/health', (req: Request, res: Response) => {
 app.use('/api/students', studentRoutes);
 app.use('/api/instructors', instructorRoutes);
 app.use('/api/lessons', lessonRoutes);
-app.use('/api/users', userRoutes);
+app.use('/api/users', userRoutes)
+app.use('/api/lesson-requests', lessonRoutes);
 
 // Setup Swagger UI
 setupSwagger(app);
