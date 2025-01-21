@@ -246,14 +246,16 @@ class InstructorService {
                 ? { _id: { $in: instructorIds } }
                 : {}; // Fetch all instructors if instructorIds are not provided
             const instructors = yield instructor_1.Instructor.find(instructorQuery).exec();
+            // Extract instructor IDs
+            const fetchedInstructorIds = instructors.map((instructor) => instructor._id.toString());
             // Fetch all lessons for the week in one query
             const [lessons, lessonRequests] = yield Promise.all([
                 lesson_1.Lesson.find({
-                    instructor: { $in: instructorIds },
+                    instructor: { $in: fetchedInstructorIds },
                     startTime: { $gte: startOfWeek, $lte: endOfWeek },
                 }).exec(),
                 LessonRequest_1.LessonRequest.find({
-                    instructor: { $in: instructorIds },
+                    instructor: { $in: fetchedInstructorIds },
                     startTime: { $gte: startOfWeek, $lte: endOfWeek },
                     status: "pending", // Only consider pending requests
                 }).exec(),
