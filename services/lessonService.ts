@@ -17,45 +17,53 @@ import {IStudent} from "../models/student";
 class LessonService {
     // Add a new lesson
     async addLesson(lessonData: Omit<ILesson, '_id'>): Promise<ILesson> {
-        // Ensure start and end times are in the future
-        this.validateLessonDates(lessonData.startTime, lessonData.endTime);
-        // //Check lesson participants match the lesson
-        // await this.validateLessonParticipants(lessonData.instructor, lessonData.students,lessonData.style,lessonData.type);
-        // // Validate the lesson fits within the instructor's available hours
-        // await this.validateInstructorAvailability(
-        //     lessonData.instructor,
-        //     lessonData.startTime,
-        //     lessonData.endTime
-        // );
-        // // validate no overlaps in the pool lessons schedule
-        // await this.validateLessonOverlap(
-        //     lessonData.startTime,
-        //     lessonData.endTime
-        // );
-        await Promise.all([
-            //Check lesson participants match the lesson
-            this.validateLessonParticipants(
+        try {
+            // Ensure start and end times are in the future
+            this.validateLessonDates(lessonData.startTime, lessonData.endTime);
+        } catch (error) {
+            console.error('Error in validateLessonDates:', error);
+            throw error; // Re-throw after logging
+        }
+
+        try {
+            // Check lesson participants match the lesson
+            await this.validateLessonParticipants(
                 lessonData.instructor,
                 lessonData.students,
                 lessonData.style,
                 lessonData.type
-            ),
+            );
+        } catch (error) {
+            console.error('Error in validateLessonParticipants:', error);
+            throw error; // Re-throw after logging
+        }
+
+        try {
             // Validate the lesson fits within the instructor's available hours
-            this.validateInstructorAvailability(
+            await this.validateInstructorAvailability(
                 lessonData.instructor,
                 lessonData.startTime,
                 lessonData.endTime
-            ),
-            // validate no overlaps in the pool lessons schedule
-            this.validateLessonOverlap(lessonData.startTime, lessonData.endTime),
-        ]);
+            );
+        } catch (error) {
+            console.error('Error in validateInstructorAvailability:', error);
+            throw error; // Re-throw after logging
+        }
 
-
+        try {
+            // Validate no overlaps in the pool lessons schedule
+            await this.validateLessonOverlap(
+                lessonData.startTime,
+                lessonData.endTime
+            );
+        } catch (error) {
+            console.error('Error in validateLessonOverlap:', error);
+            throw error; // Re-throw after logging
+        }
 
         const lesson = new Lesson(lessonData);
         return await lesson.save();
     }
-
     // Update an existing lesson
     // async updateLesson(
     //     lessonId: string,
