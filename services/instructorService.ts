@@ -1,4 +1,4 @@
-import {DayOfWeek, IInstructor, Instructor} from '../models/instructor';
+import {DayOfWeek, IInstructor, Instructor, WeeklyAvailability} from '../models/instructor';
 import {AppError} from "../errors/AppError";
 import {Lesson} from "../models/lesson";
 
@@ -248,6 +248,159 @@ class InstructorService {
             );
         }
     }
+
+    async getWeeklyAvailableHours(
+        date: Date,
+        styles: string[],
+        instructorIds: string[]
+    ): Promise<WeeklyAvailability[]> {
+
+        // Get the current date and move to the start of the next week (Sunday)
+        const now = new Date();
+        const nextWeekStart = new Date(now);
+        nextWeekStart.setDate(now.getDate() + (7 - now.getDay())); // Move to next week's Sunday
+        nextWeekStart.setHours(0, 0, 0, 0);
+
+        // Validate if the date is at least the start of the next week
+        if (date < nextWeekStart) {
+            throw new AppError(
+                `Invalid date: The provided date must be at least the start of the next week (${nextWeekStart.toISOString().slice(0, 10)}).`,
+                400
+            );
+        }
+
+        const startOfWeek = new Date(date);
+        startOfWeek.setDate(date.getDate() - date.getDay()); // Move to Sunday
+        startOfWeek.setHours(0, 0, 0, 0);
+
+
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6); // Move to Saturday
+        endOfWeek.setHours(23, 59, 59, 999);
+
+        // Fetch all instructors
+        const instructors = await Instructor.find({ _id: { $in: instructorIds } }).exec();
+
+        // Fetch all lessons for the week in one query
+        const lessons = await Lesson.find({
+            instructor: { $in: instructorIds },
+            startTime: { $gte: startOfWeek, $lte: endOfWeek },
+        }).exec();
+
+        // Group lessons by instructor and day of the week
+        const lessonsByInstructor: Record<
+            string,
+            Record<string, { start: string; end: string }[]> // Nested grouping: instructor -> day
+        > = {};
+
+        lessons.forEach((lesson) => {
+            const instructorId = lesson.instructor.toString();
+            const lessonDate = new Date(lesson.startTime);
+            const dayOfWeek = lessonDate.toISOString().slice(0, 10); // Use full date as key
+
+            // Initialize structure for the instructor if it doesn't exist
+            if (!lessonsByInstructor[instructorId]) {
+                lessonsByInstructor[instructorId] = {};
+            }
+
+            // Initialize structure for the specific day if it doesn't exist
+            if (!lessonsByInstructor[instructorId][dayOfWeek]) {
+                lessonsByInstructor[instructorId][dayOfWeek] = [];
+            }
+
+            // Add the lesson to the correct day for the instructor
+            lessonsByInstructor[instructorId][dayOfWeek].push({
+                start: lesson.startTime.toISOString().slice(11, 16), // HH:mm format
+                end: lesson.endTime.toISOString().slice(11, 16),
+            });
+        });
+
+        // Prepare the result array
+        const result: WeeklyAvailability[] = [];
+
+        // Process each instructor
+        for (const instructor of instructors) {
+            // Check if the instructor has expertise in any of the provided styles
+            const hasExpertise = styles.some((style) => instructor.expertise.includes(style));
+            if (!hasExpertise) {
+                result.push({
+                    instructorId: instructor._id.toString(),
+                    instructorName: instructor.name,
+                    weeklyHours: [],
+                });
+                continue;
+            }
+
+            const weeklyHours: {
+                day: DayOfWeek;
+                availableHours: { start: string; end: string }[];
+            }[] = [];
+
+            // Iterate through each day of the week
+            for (let i = 0; i < 7; i++) {
+                const currentDay = new Date(startOfWeek);
+                currentDay.setDate(startOfWeek.getDate() + i);
+
+                const dayOfWeek: DayOfWeek = [
+                    "Sunday",
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday",
+                ][i] as DayOfWeek;
+
+                // Filter working hours for the current day
+                const workingHours = instructor.availableHours.filter((hour) => hour.day === dayOfWeek);
+
+                if (workingHours.length === 0) {
+                    // Skip if no working hours are available for the current day
+                    continue;
+                }
+
+                const dayLessons = lessonsByInstructor[instructor._id.toString()]?.[
+                    currentDay.toISOString().slice(0, 10)
+                    ] || [];
+
+                const availableHours: { start: string; end: string }[] = [];
+
+                // Calculate gaps in working hours
+                workingHours.forEach(({ start, end }) => {
+                    let currentStart = start;
+
+                    // Iterate over booked slots to find gaps
+                    dayLessons
+                        .filter((slot) => slot.start >= start && slot.end <= end) // Slots within working hours
+                        .sort((a, b) => a.start.localeCompare(b.start)) // Sort by start time
+                        .forEach((slot) => {
+                            if (currentStart < slot.start) {
+                                availableHours.push({ start: currentStart, end: slot.start });
+                            }
+                            currentStart = slot.end; // Update current start
+                        });
+
+                    // Add remaining slot after the last booked slot
+                    if (currentStart < end) {
+                        availableHours.push({ start: currentStart, end });
+                    }
+                });
+
+                weeklyHours.push({ day: dayOfWeek, availableHours });
+            }
+
+            result.push({
+                instructorId: instructor._id.toString(),
+                instructorName: instructor.name,
+                weeklyHours,
+            });
+        }
+
+        return result;
+    }
+
+
+
 
 }
 

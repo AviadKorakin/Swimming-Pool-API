@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { instructorService } from '../services/instructorService';
-import { IInstructor } from '../models/instructor';
+import {IInstructor, WeeklyAvailability} from '../models/instructor';
 import {AppError} from "../errors/AppError";
 import mongoose from "mongoose";
 import {lessonService} from "../services/lessonService";
@@ -196,5 +196,56 @@ export const findAvailableInstructors = async (
         res.status(400).json({
             error: error instanceof Error ? error.message : 'Failed to find available instructors',
         });
+    }
+};
+
+// Get weekly available hours for instructors
+export const getWeeklyAvailableHours = async (
+    req: Request<{}, {}, {}, { date: string; styles: string[]; instructorIds: string[] }>,
+    res: Response<{ weeklyAvailability: WeeklyAvailability[] } | { error: string }>
+): Promise<void> => {
+    try {
+        const { date, styles, instructorIds } = req.query;
+
+        // Validate input parameters
+        if (!date || isNaN(Date.parse(date))) {
+            res.status(400).json({ error: "Invalid or missing date parameter" });
+            return;
+        }
+
+        if (!styles || !styles.length) {
+            res.status(400).json({ error: "Styles parameter is required and cannot be empty" });
+            return;
+        }
+
+        if (!instructorIds || !Array.isArray(instructorIds) || instructorIds.length === 0) {
+            res.status(400).json({ error: "Instructor IDs parameter is required and cannot be empty" });
+            return;
+        }
+
+        // Ensure all instructor IDs are valid MongoDB ObjectIds
+        const invalidIds = instructorIds.filter((id) => !mongoose.Types.ObjectId.isValid(id));
+        if (invalidIds.length > 0) {
+            res.status(400).json({ error: `Invalid instructor IDs: ${invalidIds.join(", ")}` });
+            return;
+        }
+
+        // Call the service method
+        const weeklyAvailability = await instructorService.getWeeklyAvailableHours(
+            new Date(date),
+            styles,
+            instructorIds
+        );
+
+        // Send response
+        res.status(200).json({ weeklyAvailability });
+    } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        } else {
+            res.status(400).json({
+                error: error instanceof Error ? error.message : "Failed to retrieve weekly available hours",
+            });
+        }
     }
 };

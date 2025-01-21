@@ -7,6 +7,16 @@ export interface IInstructor extends Document {
     expertise: string[]; // Swimming styles they can teach
 }
 
+export interface WeeklyAvailability {
+    instructorId: string;
+    instructorName: string;
+    weeklyHours: {
+        day: DayOfWeek;
+        availableHours: { start: string; end: string }[];
+    }[];
+}
+
+
 export type DayOfWeek =
     | 'Sunday'
     | 'Monday'
