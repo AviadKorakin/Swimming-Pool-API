@@ -40,6 +40,6 @@ export type RequestLessonFilter = Partial<
 >;
 
 export const LessonRequest = mongoose.model<ILessonRequest>(
-    "LessonRequest",
+    'LessonRequest',
     LessonRequestSchema
 );

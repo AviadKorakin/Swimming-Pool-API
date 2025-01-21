@@ -53,4 +53,4 @@ const LessonRequestSchema = new mongoose_1.Schema({
     },
 }, { timestamps: true } // Automatically manages createdAt and updatedAt fields
 );
-exports.LessonRequest = mongoose_1.default.model("LessonRequest", LessonRequestSchema);
+exports.LessonRequest = mongoose_1.default.model('LessonRequest', LessonRequestSchema);

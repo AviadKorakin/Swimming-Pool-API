@@ -11,6 +11,7 @@ import lessonRoutes from './routes/lessonRoutes';
 import userRoutes from './routes/userRoutes';
 import cors from 'cors'
 import axios from 'axios';
+import lessonRequestRoutes from "./routes/lessonRequestRoutes";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -69,7 +70,7 @@ app.use('/api/students', studentRoutes);
 app.use('/api/instructors', instructorRoutes);
 app.use('/api/lessons', lessonRoutes);
 app.use('/api/users', userRoutes)
-app.use('/api/lesson-requests', lessonRoutes);
+app.use('/api/lesson-requests', lessonRequestRoutes);
 
 // Setup Swagger UI
 setupSwagger(app);

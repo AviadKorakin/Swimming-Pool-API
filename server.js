@@ -25,6 +25,7 @@ const lessonRoutes_1 = __importDefault(require("./routes/lessonRoutes"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const cors_1 = __importDefault(require("cors"));
 const axios_1 = __importDefault(require("axios"));
+const lessonRequestRoutes_1 = __importDefault(require("./routes/lessonRequestRoutes"));
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
 let server; // To store the server instance
@@ -75,7 +76,7 @@ app.use('/api/students', studentRoutes_1.default);
 app.use('/api/instructors', instructorRoutes_1.default);
 app.use('/api/lessons', lessonRoutes_1.default);
 app.use('/api/users', userRoutes_1.default);
-app.use('/api/lesson-requests', lessonRoutes_1.default);
+app.use('/api/lesson-requests', lessonRequestRoutes_1.default);
 // Setup Swagger UI
 (0, swagger_1.setupSwagger)(app);
 /**
