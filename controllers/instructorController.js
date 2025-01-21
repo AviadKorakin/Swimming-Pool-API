@@ -190,7 +190,7 @@ exports.findAvailableInstructors = findAvailableInstructors;
 // Get weekly available hours for instructors
 const getWeeklyAvailableHours = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { date, styles, instructorIds } = req.query;
+        const { date, styles, instructorIds } = req.body;
         // Validate input parameters
         if (!date || isNaN(Date.parse(date))) {
             res.status(400).json({ error: "Invalid or missing date parameter" });

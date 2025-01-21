@@ -318,7 +318,7 @@ router.get('/available-hours', getAvailableHoursForInstructor);
  *                   type: string
  *                   example: "Failed to retrieve weekly available hours"
  */
-router.get('/weekly-available-hours', getWeeklyAvailableHours);
+router.post('/weekly-available-hours', getWeeklyAvailableHours);
 
 /**
  * @swagger

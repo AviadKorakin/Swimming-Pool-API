@@ -201,11 +201,11 @@ export const findAvailableInstructors = async (
 
 // Get weekly available hours for instructors
 export const getWeeklyAvailableHours = async (
-    req: Request<{}, {}, {}, { date: string; styles: string[]; instructorIds: string[] }>,
+    req: Request<{}, {}, { date: string; styles: string[]; instructorIds: string[] }>,
     res: Response<{ weeklyAvailability: WeeklyAvailability[] } | { error: string }>
 ): Promise<void> => {
     try {
-        const { date, styles, instructorIds } = req.query;
+        const { date, styles, instructorIds } = req.body;
 
         // Validate input parameters
         if (!date || isNaN(Date.parse(date))) {
