@@ -226,6 +226,91 @@ router.get('/availability', instructorController_1.findAvailableInstructors);
 router.get('/available-hours', instructorController_1.getAvailableHoursForInstructor);
 /**
  * @swagger
+ * /api/instructors/weekly-available-hours:
+ *   get:
+ *     summary: Get weekly available hours for multiple instructors
+ *     tags: [Instructors]
+ *     parameters:
+ *       - in: query
+ *         name: date
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: The starting date of the week (e.g., "2025-01-20").
+ *       - in: query
+ *         name: styles
+ *         required: true
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         description: Array of swimming styles to filter by expertise.
+ *       - in: query
+ *         name: instructorIds
+ *         required: true
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         description: Array of instructor IDs to fetch availability for.
+ *     responses:
+ *       200:
+ *         description: Weekly available hours retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   instructorId:
+ *                     type: string
+ *                   instructorName:
+ *                     type: string
+ *                   weeklyHours:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         day:
+ *                           type: string
+ *                           example: "Monday"
+ *                         availableHours:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               start:
+ *                                 type: string
+ *                                 example: "09:00"
+ *                               end:
+ *                                 type: string
+ *                                 example: "11:00"
+ *       400:
+ *         description: Invalid or missing query parameters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Invalid date parameter"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Failed to retrieve weekly available hours"
+ */
+router.get('/weekly-available-hours', instructorController_1.getWeeklyAvailableHours);
+/**
+ * @swagger
  * /api/instructors/{id}:
  *   get:
  *     summary: Get an instructor by ID

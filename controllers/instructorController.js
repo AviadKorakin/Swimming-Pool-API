@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findAvailableInstructors = exports.getAvailableHoursForInstructor = exports.getInstructorById = exports.getAllInstructors = exports.removeInstructor = exports.updateInstructor = exports.addInstructor = void 0;
+exports.getWeeklyAvailableHours = exports.findAvailableInstructors = exports.getAvailableHoursForInstructor = exports.getInstructorById = exports.getAllInstructors = exports.removeInstructor = exports.updateInstructor = exports.addInstructor = void 0;
 const instructorService_1 = require("../services/instructorService");
 const AppError_1 = require("../errors/AppError");
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -187,3 +187,43 @@ const findAvailableInstructors = (req, res) => __awaiter(void 0, void 0, void 0,
     }
 });
 exports.findAvailableInstructors = findAvailableInstructors;
+// Get weekly available hours for instructors
+const getWeeklyAvailableHours = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { date, styles, instructorIds } = req.query;
+        // Validate input parameters
+        if (!date || isNaN(Date.parse(date))) {
+            res.status(400).json({ error: "Invalid or missing date parameter" });
+            return;
+        }
+        if (!styles || !styles.length) {
+            res.status(400).json({ error: "Styles parameter is required and cannot be empty" });
+            return;
+        }
+        if (!instructorIds || !Array.isArray(instructorIds) || instructorIds.length === 0) {
+            res.status(400).json({ error: "Instructor IDs parameter is required and cannot be empty" });
+            return;
+        }
+        // Ensure all instructor IDs are valid MongoDB ObjectIds
+        const invalidIds = instructorIds.filter((id) => !mongoose_1.default.Types.ObjectId.isValid(id));
+        if (invalidIds.length > 0) {
+            res.status(400).json({ error: `Invalid instructor IDs: ${invalidIds.join(", ")}` });
+            return;
+        }
+        // Call the service method
+        const weeklyAvailability = yield instructorService_1.instructorService.getWeeklyAvailableHours(new Date(date), styles, instructorIds);
+        // Send response
+        res.status(200).json({ weeklyAvailability });
+    }
+    catch (error) {
+        if (error instanceof AppError_1.AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else {
+            res.status(400).json({
+                error: error instanceof Error ? error.message : "Failed to retrieve weekly available hours",
+            });
+        }
+    }
+});
+exports.getWeeklyAvailableHours = getWeeklyAvailableHours;
