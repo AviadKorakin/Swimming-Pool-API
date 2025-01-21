@@ -36,7 +36,7 @@ class LessonService {
             }
             try {
                 // Validate the lesson fits within the instructor's available hours
-                yield this.validateInstructorAvailability(lessonData.instructor, lessonData.startTime, lessonData.endTime);
+                yield this.validateInstructorAvailability(lessonData.instructor, new Date(lessonData.startTime), new Date(lessonData.endTime));
             }
             catch (error) {
                 console.error('Error in validateInstructorAvailability:', error);
