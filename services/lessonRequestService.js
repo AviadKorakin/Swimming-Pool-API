@@ -21,8 +21,12 @@ class LessonRequestService {
             // Validate participants and times
             requestData.startTime = new Date(requestData.startTime);
             requestData.endTime = new Date(requestData.endTime);
-            yield lessonService_1.lessonService.validateLessonParticipants(requestData.instructor, requestData.students, requestData.style, requestData.type);
             lessonService_1.lessonService.validateLessonDates(requestData.startTime, requestData.endTime);
+            // Run validations concurrently using Promise.all
+            yield Promise.all([
+                lessonService_1.lessonService.validateLessonParticipants(requestData.instructor, requestData.students, requestData.style, requestData.type),
+                this.validateNoOverlappingRequests(requestData.instructor, requestData.startTime, requestData.endTime),
+            ]);
             // Create and save the lesson request
             const lessonRequest = new LessonRequest_1.LessonRequest(requestData);
             return yield lessonRequest.save();
@@ -110,6 +114,29 @@ class LessonRequestService {
             }
             catch (_a) {
                 return false; // If validation fails, request is not canApprove
+            }
+        });
+    }
+    // Validate no overlapping requests
+    validateNoOverlappingRequests(instructorId, startTime, endTime) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const overlappingRequest = yield LessonRequest_1.LessonRequest.findOne({
+                instructor: instructorId,
+                $or: [
+                    {
+                        startTime: { $lt: endTime }, // Starts before the new request ends
+                        endTime: { $gt: startTime }, // Ends after the new request starts
+                    },
+                    {
+                        startTime: { $gte: startTime, $lte: endTime }, // New request includes existing request
+                    },
+                    {
+                        endTime: { $gte: startTime, $lte: endTime }, // Existing request includes new request
+                    },
+                ],
+            });
+            if (overlappingRequest) {
+                throw new AppError_1.AppError("The instructor already has a lesson request during the specified time range.", 400);
             }
         });
     }
