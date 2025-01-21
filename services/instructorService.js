@@ -175,9 +175,9 @@ class InstructorService {
                 return []; // No working hours for the specified day
             }
             // Fetch lessons for the instructor on the specified date
-            const startOfDay = new Date(date);
+            const startOfDay = new Date(dateObj);
             startOfDay.setHours(0, 0, 0, 0);
-            const endOfDay = new Date(date);
+            const endOfDay = new Date(dateObj);
             endOfDay.setHours(23, 59, 59, 999);
             const lessons = yield lesson_1.Lesson.find({
                 startTime: { $gte: startOfDay, $lte: endOfDay },
