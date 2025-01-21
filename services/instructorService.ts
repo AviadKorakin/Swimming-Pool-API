@@ -170,10 +170,6 @@ class InstructorService {
         if (!instructor) {
             throw new AppError("Instructor not found", 404);
         }
-        const dateObj  = new Date(date);
-        if (isNaN(dateObj.getTime())) {
-            throw new AppError("Invalid date provided", 400);
-        }
         // Convert the date to the corresponding day of the week
         const dayOfWeek: DayOfWeek = [
             "Sunday",
@@ -183,7 +179,7 @@ class InstructorService {
             "Thursday",
             "Friday",
             "Saturday",
-        ][dateObj .getDay()] as DayOfWeek;
+        ][date.getDay()] as DayOfWeek;
 
         // Fetch working hours for the instructor on the specified day
         const workingHours = instructor.availableHours.filter((hour) => hour.day === dayOfWeek);
@@ -193,10 +189,10 @@ class InstructorService {
         }
 
         // Fetch lessons for the instructor on the specified date
-        const startOfDay = new Date(dateObj);
+        const startOfDay = new Date(date);
         startOfDay.setHours(0, 0, 0, 0);
 
-        const endOfDay = new Date(dateObj);
+        const endOfDay = new Date(date);
         endOfDay.setHours(23, 59, 59, 999);
 
         const lessons = await Lesson.find({
