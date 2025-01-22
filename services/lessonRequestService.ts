@@ -134,24 +134,31 @@ class LessonRequestService {
         page: number = 1,
         limit: number = 10
     ): Promise<{ lessonRequests: ILessonRequest[]; total: number }> {
-        // Remove undefined fields from filters
-        if( filters.startTime)
-        filters.startTime = new Date(filters.startTime);
-        if( filters.endTime)
-            filters.endTime = new Date(filters.endTime);
-        console.log("filters" + filters);
+        // Convert startTime and endTime to Date objects if provided
+        if (filters.startTime) filters.startTime = new Date(filters.startTime);
+        if (filters.endTime) filters.endTime = new Date(filters.endTime);
+
+        console.log("filters:", filters);
+
         const queryFilters: Record<string, any> = Object.fromEntries(
             Object.entries(filters).filter(([_, value]) => value !== undefined)
         );
-        console.log(queryFilters);
+
         // Handle the status filter as an array
         if (queryFilters.status && Array.isArray(queryFilters.status)) {
             queryFilters.status = { $in: queryFilters.status }; // Use MongoDB $in operator
         }
 
+        // Handle students filter
+        if (queryFilters.students && Array.isArray(queryFilters.students)) {
+            queryFilters.students = { $in: queryFilters.students }; // Match any student in the array
+        }
+
+        console.log("queryFilters:", queryFilters);
+
         // Count total matching requests
         const total = await LessonRequest.countDocuments(queryFilters);
-        console.log("total"+total);
+        console.log("Total matching requests:", total);
 
         // Fetch requests with population and sorting
         const lessonRequests = await LessonRequest.find(queryFilters)
@@ -160,7 +167,7 @@ class LessonRequestService {
             .skip((page - 1) * limit)
             .limit(limit);
 
-        return { lessonRequests: lessonRequests, total };
+        return { lessonRequests, total };
     }
 
 
