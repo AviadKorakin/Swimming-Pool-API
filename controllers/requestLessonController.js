@@ -19,10 +19,14 @@ var __rest = (this && this.__rest) || function (s, e) {
         }
     return t;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllLessonRequests = exports.approveLessonRequest = exports.removeLessonRequest = exports.addLessonRequest = void 0;
+exports.unassignStudentFromLessonRequest = exports.getAllLessonRequests = exports.approveLessonRequest = exports.removeLessonRequest = exports.addLessonRequest = void 0;
 const lessonRequestService_1 = require("../services/lessonRequestService");
 const AppError_1 = require("../errors/AppError");
+const mongoose_1 = __importDefault(require("mongoose"));
 // Add a new lesson request
 const addLessonRequest = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -124,3 +128,26 @@ res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getAllLessonRequests = getAllLessonRequests;
+// Unassign a student from a lesson request
+const unassignStudentFromLessonRequest = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { lessonRequestId, studentId } = req.params;
+        // Call the service to unassign the student
+        yield lessonRequestService_1.lessonRequestService.unassignStudent(new mongoose_1.default.Types.ObjectId(studentId), new mongoose_1.default.Types.ObjectId(lessonRequestId));
+        // Respond with success message
+        res.status(200).json({ message: "Student successfully unassigned from lesson request" });
+    }
+    catch (error) {
+        if (error instanceof AppError_1.AppError) {
+            // Handle application-specific errors
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else {
+            // Handle generic server errors
+            res.status(500).json({
+                error: error instanceof Error ? error.message : "Failed to unassign student",
+            });
+        }
+    }
+});
+exports.unassignStudentFromLessonRequest = unassignStudentFromLessonRequest;

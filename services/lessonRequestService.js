@@ -106,6 +106,11 @@ class LessonRequestService {
     getAllRequests() {
         return __awaiter(this, arguments, void 0, function* (filters = {}, page = 1, limit = 10) {
             // Remove undefined fields from filters
+            if (filters.startTime)
+                filters.startTime = new Date(filters.startTime);
+            if (filters.endTime)
+                filters.endTime = new Date(filters.endTime);
+            console.log("filters" + filters);
             const queryFilters = Object.fromEntries(Object.entries(filters).filter(([_, value]) => value !== undefined));
             // Handle the status filter as an array
             if (queryFilters.status && Array.isArray(queryFilters.status)) {
@@ -186,6 +191,24 @@ class LessonRequestService {
                 const studentIdsExceedingLimit = studentsExceedingLimit.map((student) => student._id.toString());
                 throw new AppError_1.AppError(`Students with IDs ${studentIdsExceedingLimit.join(", ")} already have 2 or more pending lesson requests.`, 400);
             }
+        });
+    }
+    // Unassign a student from a lesson request
+    unassignStudent(studentId, lessonRequestId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Find the lesson request by ID
+            const lessonRequest = yield LessonRequest_1.LessonRequest.findById(lessonRequestId);
+            if (!lessonRequest) {
+                throw new AppError_1.AppError("Lesson request not found", 404);
+            }
+            // Check if the student is part of the lesson request
+            if (!lessonRequest.students.includes(studentId)) {
+                throw new AppError_1.AppError("Student not assigned to this lesson request", 400);
+            }
+            // Remove the student from the lesson request
+            lessonRequest.students = lessonRequest.students.filter((id) => id.toString() !== studentId.toString());
+            // Save the updated lesson request
+            yield lessonRequest.save();
         });
     }
 }

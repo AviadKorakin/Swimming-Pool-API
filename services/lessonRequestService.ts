@@ -135,6 +135,11 @@ class LessonRequestService {
         limit: number = 10
     ): Promise<{ lessonRequests: ILessonRequest[]; total: number }> {
         // Remove undefined fields from filters
+        if( filters.startTime)
+        filters.startTime = new Date(filters.startTime);
+        if( filters.endTime)
+            filters.endTime = new Date(filters.endTime);
+        console.log("filters" + filters);
         const queryFilters: Record<string, any> = Object.fromEntries(
             Object.entries(filters).filter(([_, value]) => value !== undefined)
         );
@@ -238,6 +243,31 @@ class LessonRequestService {
                 400
             );
         }
+    }
+    // Unassign a student from a lesson request
+    async unassignStudent(
+        studentId: mongoose.Types.ObjectId,
+        lessonRequestId: mongoose.Types.ObjectId
+    ): Promise<void> {
+        // Find the lesson request by ID
+        const lessonRequest = await LessonRequest.findById(lessonRequestId);
+
+        if (!lessonRequest) {
+            throw new AppError("Lesson request not found", 404);
+        }
+
+        // Check if the student is part of the lesson request
+        if (!lessonRequest.students.includes(studentId)) {
+            throw new AppError("Student not assigned to this lesson request", 400);
+        }
+
+        // Remove the student from the lesson request
+        lessonRequest.students = lessonRequest.students.filter(
+            (id) => id.toString() !== studentId.toString()
+        );
+
+        // Save the updated lesson request
+        await lessonRequest.save();
     }
 }
 

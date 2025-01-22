@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { lessonRequestService } from "../services/lessonRequestService";
 import { ILessonRequest, RequestLessonFilter } from "../models/LessonRequest";
 import { AppError } from "../errors/AppError";
+import mongoose from "mongoose";
 
 // Add a new lesson request
 export const addLessonRequest = async (
@@ -114,3 +115,34 @@ export const getAllLessonRequests = async (
         }
     }
 };
+
+
+// Unassign a student from a lesson request
+export const unassignStudentFromLessonRequest = async (
+    req: Request<{ lessonRequestId: string; studentId: string }>,
+    res: Response<{ message: string } | { error: string }>
+): Promise<void> => {
+    try {
+        const { lessonRequestId, studentId } = req.params;
+
+        // Call the service to unassign the student
+        await lessonRequestService.unassignStudent(
+            new mongoose.Types.ObjectId(studentId),
+            new mongoose.Types.ObjectId(lessonRequestId)
+        );
+
+        // Respond with success message
+        res.status(200).json({ message: "Student successfully unassigned from lesson request" });
+    } catch (error) {
+        if (error instanceof AppError) {
+            // Handle application-specific errors
+            res.status(error.statusCode).json({ error: error.message });
+        } else {
+            // Handle generic server errors
+            res.status(500).json({
+                error: error instanceof Error ? error.message : "Failed to unassign student",
+            });
+        }
+    }
+};
+

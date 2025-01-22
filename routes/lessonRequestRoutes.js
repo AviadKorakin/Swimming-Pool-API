@@ -159,4 +159,34 @@ router.post('/:id/approve', requestLessonController_1.approveLessonRequest);
  *         description: Internal server error
  */
 router.post('/', requestLessonController_1.getAllLessonRequests);
+/**
+ * @swagger
+ * /api/lesson-requests/{lessonRequestId}/students/{studentId}:
+ *   delete:
+ *     summary: Unassign a student from a lesson request
+ *     tags: [Lesson Requests]
+ *     parameters:
+ *       - in: path
+ *         name: lessonRequestId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the lesson request
+ *       - in: path
+ *         name: studentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the student to unassign
+ *     responses:
+ *       200:
+ *         description: Student successfully unassigned from the lesson request
+ *       400:
+ *         description: Invalid input data or unassignment not allowed
+ *       404:
+ *         description: Lesson request or student not found
+ *       500:
+ *         description: Internal server error
+ */
+router.delete('/:lessonRequestId/students/:studentId', requestLessonController_1.unassignStudentFromLessonRequest);
 exports.default = router;
