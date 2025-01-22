@@ -36,9 +36,8 @@ const LessonRequestSchema: Schema = new Schema(
     { timestamps: true } // Automatically manages createdAt and updatedAt fields
 );
 export type RequestLessonFilter = Partial<
-    Pick<ILessonRequest, "instructor" | "students" | "style" | "type" | "status" | "startTime" | "endTime">
+    Omit<ILessonRequest, "status"> & { status: ("pending" | "approved" | "rejected")[] }
 >;
-
 export const LessonRequest = mongoose.model<ILessonRequest>(
     'LessonRequest',
     LessonRequestSchema

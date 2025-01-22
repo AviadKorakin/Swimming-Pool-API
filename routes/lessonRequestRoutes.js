@@ -158,5 +158,5 @@ router.post('/:id/approve', requestLessonController_1.approveLessonRequest);
  *       500:
  *         description: Internal server error
  */
-router.get('/', requestLessonController_1.getAllLessonRequests);
+router.post('/', requestLessonController_1.getAllLessonRequests);
 exports.default = router;

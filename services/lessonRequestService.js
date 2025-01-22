@@ -26,6 +26,7 @@ class LessonRequestService {
             yield Promise.all([
                 lessonService_1.lessonService.validateLessonParticipants(requestData.instructor, requestData.students, requestData.style, requestData.type),
                 this.validateNoOverlappingRequests(requestData.instructor, requestData.startTime, requestData.endTime),
+                this.validateStudentPendingRequests(requestData.students)
             ]);
             // Create and save the lesson request
             const lessonRequest = new LessonRequest_1.LessonRequest(requestData);
@@ -80,8 +81,7 @@ class LessonRequestService {
         });
     }
     // Get all lesson requests with optional filters and pagination
-    // Get all lesson requests with optional filters and pagination
-    getAllRequests() {
+    getAllInstructorRequests() {
         return __awaiter(this, arguments, void 0, function* (filters = {}, page = 1, limit = 10) {
             // Remove undefined fields from filters
             const queryFilters = Object.fromEntries(Object.entries(filters).filter(([_, value]) => value !== undefined));
@@ -101,6 +101,25 @@ class LessonRequestService {
                 return enhancedRequest;
             })));
             return { lessonRequests: lessonRequestsWithFlags, total };
+        });
+    }
+    getAllRequests() {
+        return __awaiter(this, arguments, void 0, function* (filters = {}, page = 1, limit = 10) {
+            // Remove undefined fields from filters
+            const queryFilters = Object.fromEntries(Object.entries(filters).filter(([_, value]) => value !== undefined));
+            // Handle the status filter as an array
+            if (queryFilters.status && Array.isArray(queryFilters.status)) {
+                queryFilters.status = { $in: queryFilters.status }; // Use MongoDB $in operator
+            }
+            // Count total matching requests
+            const total = yield LessonRequest_1.LessonRequest.countDocuments(queryFilters);
+            // Fetch requests with population and sorting
+            const lessonRequests = yield LessonRequest_1.LessonRequest.find(queryFilters)
+                .populate("instructor students") // Populate referenced fields
+                .sort({ createdAt: -1 }) // Sort by most recent first
+                .skip((page - 1) * limit)
+                .limit(limit);
+            return { lessonRequests: lessonRequests, total };
         });
     }
     // Helper method to check if a request is canApprove
@@ -137,6 +156,35 @@ class LessonRequestService {
             });
             if (overlappingRequest) {
                 throw new AppError_1.AppError("The instructor already has a lesson request during the specified time range.", 400);
+            }
+        });
+    }
+    // Validate that no student has more than 2 pending requests
+    validateStudentPendingRequests(studentIds) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Fetch the number of pending requests for each student
+            const pendingCounts = yield LessonRequest_1.LessonRequest.aggregate([
+                {
+                    $match: {
+                        status: "pending",
+                        students: { $in: studentIds },
+                    },
+                },
+                {
+                    $unwind: "$students",
+                },
+                {
+                    $group: {
+                        _id: "$students",
+                        count: { $sum: 1 },
+                    },
+                },
+            ]);
+            // Check if any student exceeds the limit of 2 pending requests
+            const studentsExceedingLimit = pendingCounts.filter((student) => student.count >= 2);
+            if (studentsExceedingLimit.length > 0) {
+                const studentIdsExceedingLimit = studentsExceedingLimit.map((student) => student._id.toString());
+                throw new AppError_1.AppError(`Students with IDs ${studentIdsExceedingLimit.join(", ")} already have 2 or more pending lesson requests.`, 400);
             }
         });
     }

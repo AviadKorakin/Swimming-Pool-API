@@ -26,6 +26,7 @@ class LessonRequestService {
                 requestData.startTime,
                 requestData.endTime
             ),
+            this.validateStudentPendingRequests(requestData.students)
         ]);
 
         // Create and save the lesson request
@@ -93,8 +94,7 @@ class LessonRequestService {
 
 
     // Get all lesson requests with optional filters and pagination
-    // Get all lesson requests with optional filters and pagination
-    async getAllRequests(
+    async getAllInstructorRequests(
         filters: RequestLessonFilter = {},
         page: number = 1,
         limit: number = 10
@@ -128,6 +128,33 @@ class LessonRequestService {
         );
 
         return { lessonRequests: lessonRequestsWithFlags, total };
+    }
+    async getAllRequests(
+        filters: RequestLessonFilter = {},
+        page: number = 1,
+        limit: number = 10
+    ): Promise<{ lessonRequests: ILessonRequest[]; total: number }> {
+        // Remove undefined fields from filters
+        const queryFilters: Record<string, any> = Object.fromEntries(
+            Object.entries(filters).filter(([_, value]) => value !== undefined)
+        );
+
+        // Handle the status filter as an array
+        if (queryFilters.status && Array.isArray(queryFilters.status)) {
+            queryFilters.status = { $in: queryFilters.status }; // Use MongoDB $in operator
+        }
+
+        // Count total matching requests
+        const total = await LessonRequest.countDocuments(queryFilters);
+
+        // Fetch requests with population and sorting
+        const lessonRequests = await LessonRequest.find(queryFilters)
+            .populate("instructor students") // Populate referenced fields
+            .sort({ createdAt: -1 }) // Sort by most recent first
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        return { lessonRequests: lessonRequests, total };
     }
 
 
@@ -178,7 +205,41 @@ class LessonRequestService {
             );
         }
     }
+    // Validate that no student has more than 2 pending requests
+    private async validateStudentPendingRequests(studentIds: mongoose.Types.ObjectId[]): Promise<void> {
+        // Fetch the number of pending requests for each student
+        const pendingCounts = await LessonRequest.aggregate([
+            {
+                $match: {
+                    status: "pending",
+                    students: { $in: studentIds },
+                },
+            },
+            {
+                $unwind: "$students",
+            },
+            {
+                $group: {
+                    _id: "$students",
+                    count: { $sum: 1 },
+                },
+            },
+        ]);
 
+        // Check if any student exceeds the limit of 2 pending requests
+        const studentsExceedingLimit = pendingCounts.filter((student) => student.count >= 2);
+
+        if (studentsExceedingLimit.length > 0) {
+            const studentIdsExceedingLimit = studentsExceedingLimit.map((student) => student._id.toString());
+            throw new AppError(
+                `Students with IDs ${studentIdsExceedingLimit.join(
+                    ", "
+                )} already have 2 or more pending lesson requests.`,
+                400
+            );
+        }
+    }
 }
+
 
 export const lessonRequestService = new LessonRequestService();

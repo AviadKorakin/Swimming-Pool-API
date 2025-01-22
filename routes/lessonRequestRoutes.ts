@@ -163,6 +163,6 @@ router.post('/:id/approve', approveLessonRequest);
  *       500:
  *         description: Internal server error
  */
-router.get('/', getAllLessonRequests);
+router.post('/', getAllLessonRequests);
 
 export default router;
