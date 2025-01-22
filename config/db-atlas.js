@@ -14,6 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.closeDBAtlasConnection = exports.connectDBAtlas = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
+const student_1 = require("../models/student");
+const instructor_1 = require("../models/instructor");
 // Connect to MongoDB Atlas and clear the database
 const connectDBAtlas = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -29,6 +31,9 @@ const connectDBAtlas = () => __awaiter(void 0, void 0, void 0, function* () {
         console.log('Clearing the database...');
         yield clearDatabase();
         console.log('Database cleared successfully');
+        console.log('Initializing the database...');
+        yield initDatabase(); // Initialize with instructors and student
+        console.log('Database initialized successfully');
     }
     catch (err) {
         console.error('Error setting up MongoDB Atlas:', err.message);
@@ -61,3 +66,67 @@ const closeDBAtlasConnection = () => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.closeDBAtlasConnection = closeDBAtlasConnection;
+const initDatabase = () => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        console.log('Initializing database with instructors and students...');
+        // Instructors
+        const instructors = [
+            {
+                name: 'Yotam',
+                availableHours: [
+                    { day: 'Monday', start: '16:00', end: '20:00' },
+                    { day: 'Thursday', start: '16:00', end: '20:00' },
+                ],
+                expertise: ['freestyle', 'breaststroke', 'butterfly', 'backstroke'],
+            },
+            {
+                name: 'Yoni',
+                availableHours: [
+                    { day: 'Tuesday', start: '08:00', end: '15:00' },
+                    { day: 'Wednesday', start: '08:00', end: '15:00' },
+                    { day: 'Thursday', start: '08:00', end: '15:00' },
+                ],
+                expertise: ['breaststroke', 'butterfly'],
+            },
+            {
+                name: 'Johnny',
+                availableHours: [
+                    { day: 'Sunday', start: '10:00', end: '19:00' },
+                    { day: 'Tuesday', start: '10:00', end: '19:00' },
+                    { day: 'Thursday', start: '10:00', end: '19:00' },
+                ],
+                expertise: ['freestyle', 'breaststroke', 'butterfly', 'backstroke'],
+            },
+        ];
+        // Add instructors to the database
+        for (const instructorData of instructors) {
+            const instructor = new instructor_1.Instructor(instructorData);
+            yield instructor.save();
+            console.log(`Added instructor: ${instructor.name}`);
+        }
+        // Students
+        const lessonPreferences = [
+            'private',
+            'group',
+            'both_prefer_private',
+            'both_prefer_group',
+        ];
+        const students = Array.from({ length: 30 }, (_, index) => ({
+            firstName: `Student${index + 1}`,
+            lastName: `LastName${index + 1}`,
+            preferredStyles: ['freestyle', 'breaststroke', 'butterfly', 'backstroke'],
+            lessonPreference: lessonPreferences[index % lessonPreferences.length], // Cycle through preferences
+        }));
+        // Add students to the database
+        for (const studentData of students) {
+            const student = new student_1.Student(studentData);
+            yield student.save();
+            console.log(`Added student: ${student.firstName} ${student.lastName} with preference: ${student.lessonPreference}`);
+        }
+        console.log('Database initialization completed.');
+    }
+    catch (error) {
+        console.error('Error initializing the database:', error.message);
+        throw error;
+    }
+});
