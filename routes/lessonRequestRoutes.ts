@@ -94,57 +94,54 @@ router.post('/:id/approve', approveLessonRequest);
 
 /**
  * @swagger
- * /api/lesson-requests:
- *   get:
+ * /api/lesson-requests/all:
+ *   post:
  *     summary: Get all lesson requests
  *     tags: [Lesson Requests]
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *         description: Page number for pagination
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 10
- *         description: Number of items per page
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [pending, approved, rejected]
- *         description: Filter lesson requests by status
- *       - in: query
- *         name: instructor
- *         schema:
- *           type: string
- *         description: Filter by instructor ID
- *       - in: query
- *         name: style
- *         schema:
- *           type: string
- *         description: Filter by style
- *       - in: query
- *         name: type
- *         schema:
- *           type: string
- *           enum: [private, group]
- *         description: Filter by type
- *       - in: query
- *         name: startTime
- *         schema:
- *           type: string
- *           format: date-time
- *         description: Filter by start time
- *       - in: query
- *         name: endTime
- *         schema:
- *           type: string
- *           format: date-time
- *         description: Filter by end time
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               page:
+ *                 type: integer
+ *                 default: 1
+ *                 description: Page number for pagination
+ *               limit:
+ *                 type: integer
+ *                 default: 10
+ *                 description: Number of items per page
+ *               status:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum: [pending, approved, rejected]
+ *                 description: Filter lesson requests by status
+ *               instructor:
+ *                 type: string
+ *                 description: Filter by instructor ID
+ *               style:
+ *                 type: string
+ *                 description: Filter by style
+ *               type:
+ *                 type: string
+ *                 enum: [private, group]
+ *                 description: Filter by type
+ *               startTime:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Filter by start time
+ *               endTime:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Filter by end time
+ *               students:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Filter by student IDs
  *     responses:
  *       200:
  *         description: List of lesson requests retrieved successfully
@@ -160,6 +157,8 @@ router.post('/:id/approve', approveLessonRequest);
  *                 total:
  *                   type: integer
  *                   description: Total number of lesson requests
+ *       400:
+ *         description: Invalid request data
  *       500:
  *         description: Internal server error
  */
