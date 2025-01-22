@@ -23,7 +23,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.unassignStudentFromLessonRequest = exports.getAllLessonRequests = exports.approveLessonRequest = exports.removeLessonRequest = exports.addLessonRequest = void 0;
+exports.unassignStudentFromLessonRequest = exports.getAllLessonRequests = exports.approveLessonRequest = exports.getInstructorLessonRequests = exports.removeLessonRequest = exports.addLessonRequest = void 0;
 const lessonRequestService_1 = require("../services/lessonRequestService");
 const AppError_1 = require("../errors/AppError");
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -68,6 +68,37 @@ const removeLessonRequest = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.removeLessonRequest = removeLessonRequest;
+// Get all lesson requests for a specific instructor
+const getInstructorLessonRequests = (req, // Accept filters, page, and limit in the body
+res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const _a = req.body, { page = "1", limit = "10" } = _a, filters = __rest(_a, ["page", "limit"]); // Extract filters, page, and limit
+        // Validate pagination inputs
+        const pageNum = Number(page);
+        const limitNum = Number(limit);
+        if (isNaN(pageNum) || isNaN(limitNum) || pageNum <= 0 || limitNum <= 0) {
+            res.status(400).json({ error: "Page and limit must be positive numbers" });
+            return;
+        }
+        // Fetch requests with the provided filters
+        const result = yield lessonRequestService_1.lessonRequestService.getAllInstructorRequests(filters, pageNum, limitNum);
+        // Respond with the requests and total count
+        res.status(200).json(result);
+    }
+    catch (error) {
+        if (error instanceof AppError_1.AppError) {
+            // Handle application-specific errors
+            res.status(error.statusCode).json({ error: error.message });
+        }
+        else {
+            // Handle generic server errors
+            res.status(500).json({
+                error: error instanceof Error ? error.message : "Failed to retrieve lesson requests",
+            });
+        }
+    }
+});
+exports.getInstructorLessonRequests = getInstructorLessonRequests;
 // Approve or reject a lesson request
 const approveLessonRequest = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {

@@ -33,6 +33,77 @@ const router = express_1.default.Router();
 router.post('/', requestLessonController_1.addLessonRequest);
 /**
  * @swagger
+ * /api/lesson-requests/instructor:
+ *   post:
+ *     summary: Get all lesson requests for a specific instructor
+ *     tags: [Lesson Requests]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               page:
+ *                 type: integer
+ *                 default: 1
+ *                 description: Page number for pagination
+ *               limit:
+ *                 type: integer
+ *                 default: 10
+ *                 description: Number of items per page
+ *               status:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum: [pending, approved, rejected]
+ *                 description: Filter lesson requests by status
+ *               instructor:
+ *                 type: string
+ *                 description: Instructor ID (required)
+ *               style:
+ *                 type: string
+ *                 description: Filter by style
+ *               type:
+ *                 type: string
+ *                 enum: [private, group]
+ *                 description: Filter by type
+ *               startTime:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Filter by start time
+ *               endTime:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Filter by end time
+ *               students:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Filter by student IDs
+ *     responses:
+ *       200:
+ *         description: List of instructor's lesson requests retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 lessonRequests:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/LessonRequestResponse'
+ *                 total:
+ *                   type: integer
+ *                   description: Total number of lesson requests
+ *       400:
+ *         description: Invalid request data
+ *       500:
+ *         description: Internal server error
+ */
+router.post('/instructor', requestLessonController_1.getInstructorLessonRequests);
+/**
+ * @swagger
  * /api/lesson-requests/{id}:
  *   delete:
  *     summary: Remove a lesson request

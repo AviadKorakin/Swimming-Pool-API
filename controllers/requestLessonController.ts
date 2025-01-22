@@ -49,6 +49,39 @@ export const removeLessonRequest = async (
     }
 };
 
+// Get all lesson requests for a specific instructor
+export const getInstructorLessonRequests = async (
+    req: Request<{}, {}, RequestLessonFilter & { page?: string; limit?: string }>, // Accept filters, page, and limit in the body
+    res: Response<{ lessonRequests: ILessonRequest[]; total: number } | { error: string }>
+): Promise<void> => {
+    try {
+        const { page = "1", limit = "10", ...filters } = req.body; // Extract filters, page, and limit
+
+        // Validate pagination inputs
+        const pageNum = Number(page);
+        const limitNum = Number(limit);
+        if (isNaN(pageNum) || isNaN(limitNum) || pageNum <= 0 || limitNum <= 0) {
+            res.status(400).json({ error: "Page and limit must be positive numbers" });
+            return;
+        }
+
+        // Fetch requests with the provided filters
+        const result = await lessonRequestService.getAllInstructorRequests(filters, pageNum, limitNum);
+
+        // Respond with the requests and total count
+        res.status(200).json(result);
+    } catch (error) {
+        if (error instanceof AppError) {
+            // Handle application-specific errors
+            res.status(error.statusCode).json({ error: error.message });
+        } else {
+            // Handle generic server errors
+            res.status(500).json({
+                error: error instanceof Error ? error.message : "Failed to retrieve lesson requests",
+            });
+        }
+    }
+};
 // Approve or reject a lesson request
 export const approveLessonRequest = async (
     req: Request<{ id: string }, {}, { approve: boolean }>,
