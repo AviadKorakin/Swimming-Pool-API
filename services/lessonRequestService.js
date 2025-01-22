@@ -160,14 +160,17 @@ class LessonRequestService {
                 instructor: instructorId,
                 $or: [
                     {
-                        startTime: { $lt: endTime }, // Starts before the new request ends
-                        endTime: { $gt: startTime }, // Ends after the new request starts
+                        // Case 1: Existing request starts before the new request ends and ends after the new request starts
+                        startTime: { $lt: endTime },
+                        endTime: { $gt: startTime },
                     },
                     {
-                        startTime: { $gte: startTime, $lte: endTime }, // New request includes existing request
+                        // Case 2: New request completely includes an existing request
+                        startTime: { $gte: startTime, $lt: endTime }, // Use $lt for end boundary
                     },
                     {
-                        endTime: { $gte: startTime, $lte: endTime }, // Existing request includes new request
+                        // Case 3: Existing request completely includes the new request
+                        endTime: { $gt: startTime, $lte: endTime }, // Use $gt for start boundary
                     },
                 ],
             });
