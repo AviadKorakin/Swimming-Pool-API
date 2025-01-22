@@ -53,4 +53,6 @@ const LessonRequestSchema = new mongoose_1.Schema({
     },
 }, { timestamps: true } // Automatically manages createdAt and updatedAt fields
 );
+// Add the index for efficient querying
+LessonRequestSchema.index({ status: 1, students: 1 });
 exports.LessonRequest = mongoose_1.default.model('LessonRequest', LessonRequestSchema);

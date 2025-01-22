@@ -8,12 +8,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.lessonRequestService = void 0;
 const LessonRequest_1 = require("../models/LessonRequest");
 const AppError_1 = require("../errors/AppError");
 const lessonService_1 = require("./lessonService");
 const lesson_1 = require("../models/lesson");
+const mongoose_1 = __importDefault(require("mongoose"));
 class LessonRequestService {
     // Add a new lesson request
     addRequest(requestData) {
@@ -182,17 +186,20 @@ class LessonRequestService {
     // Validate that no student has more than 2 pending requests
     validateStudentPendingRequests(studentIds) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("students ids" + studentIds);
             // Fetch the number of pending requests for each student
+            const objectIds = studentIds.map((id) => new mongoose_1.default.Types.ObjectId(id));
             const pendingCounts = yield LessonRequest_1.LessonRequest.aggregate([
                 {
                     $match: {
                         status: "pending",
-                        students: { $in: studentIds },
+                        students: { $in: objectIds },
                     },
                 },
                 {
-                    $unwind: "$students",
+                    $unwind: {
+                        path: "$students",
+                        preserveNullAndEmptyArrays: true,
+                    },
                 },
                 {
                     $group: {

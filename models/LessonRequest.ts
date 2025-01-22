@@ -35,6 +35,10 @@ const LessonRequestSchema: Schema = new Schema(
     },
     { timestamps: true } // Automatically manages createdAt and updatedAt fields
 );
+
+// Add the index for efficient querying
+LessonRequestSchema.index({ status: 1, students: 1 });
+
 export type RequestLessonFilter = Partial<
     Omit<ILessonRequest, "status"> & { status: ("pending" | "approved" | "rejected")[] }
 >;

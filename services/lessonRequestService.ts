@@ -232,17 +232,20 @@ class LessonRequestService {
 
     // Validate that no student has more than 2 pending requests
     private async validateStudentPendingRequests(studentIds: mongoose.Types.ObjectId[]): Promise<void> {
-        console.log("students ids"+ studentIds);
         // Fetch the number of pending requests for each student
+        const objectIds = studentIds.map((id) => new mongoose.Types.ObjectId(id));
         const pendingCounts = await LessonRequest.aggregate([
             {
                 $match: {
                     status: "pending",
-                    students: { $in: studentIds },
+                    students: { $in: objectIds },
                 },
             },
             {
-                $unwind: "$students",
+                $unwind: {
+                    path: "$students",
+                    preserveNullAndEmptyArrays: true,
+                },
             },
             {
                 $group: {
