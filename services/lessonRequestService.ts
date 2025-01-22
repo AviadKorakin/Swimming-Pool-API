@@ -205,58 +205,23 @@ class LessonRequestService {
     }
 
 
+// Helper method to check if a request is canApprove
     private async isEligibleForApproval(request: ILessonRequest): Promise<boolean> {
         try {
-            console.log("Validating request:", {
-                instructor: request.instructor,
-                students: request.students,
-                style: request.style,
-                type: request.type,
-                startTime: request.startTime,
-                endTime: request.endTime,
-            });
+            // Validate participants and times
+            await lessonService.validateLessonParticipants(
+                request.instructor._id,
+                request.students.map(student=> student._id),
+                request.style,
+                request.type
+            );
+            lessonService.validateLessonDates(request.startTime, request.endTime);
 
-            // Validate participants
-            try {
-                await lessonService.validateLessonParticipants(
-                    request.instructor,
-                    request.students,
-                    request.style,
-                    request.type
-                );
-            } catch (error) {
-                console.error("Validation failed for participants:", {
-                    instructor: request.instructor,
-                    students: request.students,
-                    style: request.style,
-                    type: request.type,
-                    error: error instanceof Error ? error.message : error,
-                });
-                return false;
-            }
-
-            // Validate lesson dates
-            try {
-                lessonService.validateLessonDates(request.startTime, request.endTime);
-            } catch (error) {
-                console.error("Validation failed for lesson dates:", {
-                    startTime: request.startTime,
-                    endTime: request.endTime,
-                    error: error instanceof Error ? error.message : error,
-                });
-                return false;
-            }
-
-            return true; // If all validations pass, the request is canApprove
-        } catch (generalError) {
-            console.error("Unexpected error during eligibility check:", {
-                request,
-                error: generalError instanceof Error ? generalError.message : generalError,
-            });
-            return false;
+            return true; // If validation passes, request is canApprove
+        } catch {
+            return false; // If validation fails, request is not canApprove
         }
     }
-
 
     // Validate no overlapping requests
     private async validateNoOverlappingRequests(
