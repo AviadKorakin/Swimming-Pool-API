@@ -232,6 +232,7 @@ class LessonRequestService {
 
     // Validate that no student has more than 2 pending requests
     private async validateStudentPendingRequests(studentIds: mongoose.Types.ObjectId[]): Promise<void> {
+        console.log("students ids"+ studentIds);
         // Fetch the number of pending requests for each student
         const pendingCounts = await LessonRequest.aggregate([
             {
@@ -250,7 +251,7 @@ class LessonRequestService {
                 },
             },
         ]);
-        console.log(pendingCounts);
+        console.log("pending Counts" + pendingCounts);
         // Check if any student exceeds the limit of 2 pending requests
         const studentsExceedingLimit = pendingCounts.filter((student) => student.count >= 2);
 

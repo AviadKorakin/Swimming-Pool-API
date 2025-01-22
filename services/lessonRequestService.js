@@ -182,6 +182,7 @@ class LessonRequestService {
     // Validate that no student has more than 2 pending requests
     validateStudentPendingRequests(studentIds) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("students ids" + studentIds);
             // Fetch the number of pending requests for each student
             const pendingCounts = yield LessonRequest_1.LessonRequest.aggregate([
                 {
@@ -200,7 +201,7 @@ class LessonRequestService {
                     },
                 },
             ]);
-            console.log(pendingCounts);
+            console.log("pending Counts" + pendingCounts);
             // Check if any student exceeds the limit of 2 pending requests
             const studentsExceedingLimit = pendingCounts.filter((student) => student.count >= 2);
             if (studentsExceedingLimit.length > 0) {
