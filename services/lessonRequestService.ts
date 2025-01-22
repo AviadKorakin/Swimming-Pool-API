@@ -250,7 +250,7 @@ class LessonRequestService {
                 },
             },
         ]);
-
+        console.log(pendingCounts);
         // Check if any student exceeds the limit of 2 pending requests
         const studentsExceedingLimit = pendingCounts.filter((student) => student.count >= 2);
 
