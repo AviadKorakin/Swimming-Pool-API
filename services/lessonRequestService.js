@@ -112,12 +112,14 @@ class LessonRequestService {
                 filters.endTime = new Date(filters.endTime);
             console.log("filters" + filters);
             const queryFilters = Object.fromEntries(Object.entries(filters).filter(([_, value]) => value !== undefined));
+            console.log(queryFilters);
             // Handle the status filter as an array
             if (queryFilters.status && Array.isArray(queryFilters.status)) {
                 queryFilters.status = { $in: queryFilters.status }; // Use MongoDB $in operator
             }
             // Count total matching requests
             const total = yield LessonRequest_1.LessonRequest.countDocuments(queryFilters);
+            console.log("total" + total);
             // Fetch requests with population and sorting
             const lessonRequests = yield LessonRequest_1.LessonRequest.find(queryFilters)
                 .populate("instructor students") // Populate referenced fields

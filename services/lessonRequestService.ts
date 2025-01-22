@@ -143,7 +143,7 @@ class LessonRequestService {
         const queryFilters: Record<string, any> = Object.fromEntries(
             Object.entries(filters).filter(([_, value]) => value !== undefined)
         );
-
+        console.log(queryFilters);
         // Handle the status filter as an array
         if (queryFilters.status && Array.isArray(queryFilters.status)) {
             queryFilters.status = { $in: queryFilters.status }; // Use MongoDB $in operator
@@ -151,6 +151,7 @@ class LessonRequestService {
 
         // Count total matching requests
         const total = await LessonRequest.countDocuments(queryFilters);
+        console.log("total"+total);
 
         // Fetch requests with population and sorting
         const lessonRequests = await LessonRequest.find(queryFilters)
