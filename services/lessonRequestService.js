@@ -118,7 +118,7 @@ class LessonRequestService {
                     queryFilters.startTime.$gte = filters.startTime; // Greater than or equal to startTime
                 }
                 if (filters.endTime) {
-                    queryFilters.startTime.$lte = filters.endTime; // Less than or equal to endTime
+                    queryFilters.endTime.$lte = filters.endTime; // Less than or equal to endTime
                 }
             }
             // Handle the status filter as an array
