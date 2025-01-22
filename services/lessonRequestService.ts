@@ -144,6 +144,16 @@ class LessonRequestService {
             Object.entries(filters).filter(([_, value]) => value !== undefined)
         );
 
+        if (filters.startTime || filters.endTime) {
+            queryFilters.startTime = {};
+            if (filters.startTime) {
+                queryFilters.startTime.$gte = filters.startTime; // Greater than or equal to startTime
+            }
+            if (filters.endTime) {
+                queryFilters.startTime.$lte = filters.endTime; // Less than or equal to endTime
+            }
+        }
+
         // Handle the status filter as an array
         if (queryFilters.status && Array.isArray(queryFilters.status)) {
             queryFilters.status = { $in: queryFilters.status }; // Use MongoDB $in operator
