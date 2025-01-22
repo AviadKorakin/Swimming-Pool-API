@@ -158,7 +158,7 @@ router.post('/:id/approve', requestLessonController_1.approveLessonRequest);
  *       500:
  *         description: Internal server error
  */
-router.post('/', requestLessonController_1.getAllLessonRequests);
+router.post('/all', requestLessonController_1.getAllLessonRequests);
 /**
  * @swagger
  * /api/lesson-requests/{lessonRequestId}/students/{studentId}:

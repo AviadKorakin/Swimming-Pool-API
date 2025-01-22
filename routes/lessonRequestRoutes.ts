@@ -163,7 +163,7 @@ router.post('/:id/approve', approveLessonRequest);
  *       500:
  *         description: Internal server error
  */
-router.post('/', getAllLessonRequests);
+router.post('/all', getAllLessonRequests);
 
 
 /**
