@@ -12,9 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.io = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const express_1 = __importDefault(require("express"));
+const http_1 = __importDefault(require("http"));
+const socket_io_1 = require("socket.io");
 const db_atlas_1 = require("./config/db-atlas");
 const server_utils_1 = require("./utils/server-utils");
 const swagger_1 = require("./config/swagger");
@@ -29,9 +32,38 @@ const lessonRequestRoutes_1 = __importDefault(require("./routes/lessonRequestRou
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
 let server; // To store the server instance
+// Create the HTTP server
+const httpServer = http_1.default.createServer(app);
 app.use((0, cors_1.default)());
 // Parse JSON request body
 app.use(express_1.default.json());
+// Initialize Socket.IO
+const io = new socket_io_1.Server(httpServer, {
+    cors: {
+        origin: '*', // Allow all origins; adjust as needed for security
+        methods: ['GET', 'POST'],
+    },
+    transports: ["websocket", "polling"],
+});
+exports.io = io;
+// Socket.IO middleware for logging new connections
+io.use((socket, next) => {
+    console.log(`New Socket.IO connection: ${socket.id}`);
+    next();
+});
+// Handle Socket.IO events
+io.on('connection', (socket) => {
+    console.log('A client connected:', socket.id);
+    // Handle disconnection
+    socket.on('disconnect', () => {
+        console.log('A client disconnected:', socket.id);
+    });
+    // Optional: Example of a custom event
+    socket.on('custom-event', (data) => {
+        console.log('Received custom event:', data);
+        socket.emit('response-event', { message: 'Hello from the server!' });
+    });
+});
 // Add Clerk middleware for authentication
 app.use((0, express_2.clerkMiddleware)());
 // Middleware to log details of every request
@@ -86,7 +118,7 @@ const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield (0, db_atlas_1.connectDBAtlas)(); // Connect to the database using the new function
         console.log('Starting Express server...');
-        server = app.listen(PORT, () => {
+        server = httpServer.listen(PORT, () => {
             console.log(`Server is running on https://swimming-pool-api.onrender.com`);
         });
         // Self-ping every 12 minutes

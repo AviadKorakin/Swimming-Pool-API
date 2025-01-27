@@ -252,8 +252,15 @@ class LessonRequestService {
             }
             // Remove the student from the lesson request
             lessonRequest.students = lessonRequest.students.filter((id) => id.toString() !== studentId.toString());
-            // Save the updated lesson request
-            yield lessonRequest.save();
+            // Check if there are no students left
+            if (lessonRequest.students.length === 0) {
+                // Delete the lesson request if no students are left
+                yield LessonRequest_1.LessonRequest.findByIdAndDelete(lessonRequestId);
+            }
+            else {
+                // Otherwise, save the updated lesson request
+                yield lessonRequest.save();
+            }
         });
     }
 }

@@ -27,18 +27,22 @@ exports.getStudentWeeklyLessons = exports.getWeeklyLessons = exports.getAllLesso
 const lessonService_1 = require("../services/lessonService");
 const AppError_1 = require("../errors/AppError");
 const mongoose_1 = __importDefault(require("mongoose"));
+const server_1 = require("../server");
 // Add a new lesson
 const addLesson = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const lesson = yield lessonService_1.lessonService.addLesson(req.body);
+        // Emit a socket event for lesson addition
+        server_1.io.emit('lesson-added', lesson);
         res.status(201).json(lesson);
     }
     catch (error) {
         if (error instanceof AppError_1.AppError) {
             res.status(error.statusCode).json({ error: error.message });
         }
-        else
+        else {
             res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to add lesson' });
+        }
     }
 });
 exports.addLesson = addLesson;
@@ -71,14 +75,17 @@ const removeLesson = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             res.status(404).json({ error: 'Lesson not found' });
             return;
         }
+        // Emit a socket event for lesson removal
+        server_1.io.emit('lesson-removed', { id });
         res.status(200).json({ message: 'Lesson removed successfully' });
     }
     catch (error) {
         if (error instanceof AppError_1.AppError) {
             res.status(error.statusCode).json({ error: error.message });
         }
-        else
+        else {
             res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to remove lesson' });
+        }
     }
 });
 exports.removeLesson = removeLesson;
