@@ -1,6 +1,4 @@
-// @ts-ignore
 import swaggerJsdoc from 'swagger-jsdoc';
-// @ts-ignore
 import swaggerUi from 'swagger-ui-express';
 import { Express } from 'express';
 

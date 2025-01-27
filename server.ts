@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import express, { Request, Response, NextFunction } from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
 import { connectDBAtlas, closeDBAtlasConnection } from './config/db-atlas';
 import { closeServer } from './utils/server-utils';
 import { setupSwagger } from './config/swagger';
@@ -17,6 +19,39 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 let server: any; // To store the server instance
+
+// Create the HTTP server
+const httpServer = http.createServer(app);
+
+// Initialize Socket.IO
+const io = new Server(httpServer, {
+    cors: {
+        origin: '*', // Allow all origins; adjust as needed for security
+        methods: ['GET', 'POST'],
+    },
+});
+
+// Socket.IO middleware for logging new connections
+io.use((socket, next) => {
+    console.log(`New Socket.IO connection: ${socket.id}`);
+    next();
+});
+
+// Handle Socket.IO events
+io.on('connection', (socket) => {
+    console.log('A client connected:', socket.id);
+
+    // Handle disconnection
+    socket.on('disconnect', () => {
+        console.log('A client disconnected:', socket.id);
+    });
+
+    // Optional: Example of a custom event
+    socket.on('custom-event', (data) => {
+        console.log('Received custom event:', data);
+        socket.emit('response-event', { message: 'Hello from the server!' });
+    });
+});
 
 app.use(cors());
 // Parse JSON request body
@@ -122,3 +157,6 @@ process.on('SIGINT', async () => {
 
 // Start the server
 startServer().then(() => console.log('Server initialized successfully'));
+
+// Export the io instance for use in other files
+export { io };

@@ -3,6 +3,7 @@ import {lessonService} from '../services/lessonService';
 import {ILesson, LessonFilter, WeeklyLessonData, WeeklyStudentLessonData} from '../models/lesson';
 import {AppError} from "../errors/AppError";
 import mongoose from "mongoose";
+import {io} from "../server";
 
 // Add a new lesson
 export const addLesson = async (
@@ -11,14 +12,20 @@ export const addLesson = async (
 ): Promise<void> => {
     try {
         const lesson = await lessonService.addLesson(req.body);
+
+        // Emit a socket event for lesson addition
+        io.emit('lesson-added', lesson);
+
         res.status(201).json(lesson);
     } catch (error) {
         if (error instanceof AppError) {
-            res.status(error.statusCode).json({error: error.message});
-        } else
-            res.status(400).json({error: error instanceof Error ? error.message : 'Failed to add lesson'});
+            res.status(error.statusCode).json({ error: error.message });
+        } else {
+            res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to add lesson' });
+        }
     }
 };
+
 
 // Update an existing lesson
 export const updateLesson = async (
@@ -47,20 +54,27 @@ export const removeLesson = async (
     res: Response<{ message: string } | { error: string }>
 ): Promise<void> => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
         const deleted = await lessonService.removeLesson(id);
+
         if (!deleted) {
-            res.status(404).json({error: 'Lesson not found'});
+            res.status(404).json({ error: 'Lesson not found' });
             return;
         }
-        res.status(200).json({message: 'Lesson removed successfully'});
+
+        // Emit a socket event for lesson removal
+        io.emit('lesson-removed', { id });
+
+        res.status(200).json({ message: 'Lesson removed successfully' });
     } catch (error) {
         if (error instanceof AppError) {
-            res.status(error.statusCode).json({error: error.message});
-        } else
-            res.status(400).json({error: error instanceof Error ? error.message : 'Failed to remove lesson'});
+            res.status(error.statusCode).json({ error: error.message });
+        } else {
+            res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to remove lesson' });
+        }
     }
 };
+
 
 // Get all lessons
 export const getAllLessons = async (

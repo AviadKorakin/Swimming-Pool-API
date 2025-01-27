@@ -8,8 +8,8 @@ class LessonRequestService {
     // Add a new lesson request
     async addRequest(requestData: Omit<ILessonRequest, "_id">): Promise<ILessonRequest> {
         // Validate participants and times
-        requestData.startTime= new Date(requestData.startTime);
-        requestData.endTime= new Date(requestData.endTime);
+        requestData.startTime = new Date(requestData.startTime);
+        requestData.endTime = new Date(requestData.endTime);
 
         lessonService.validateLessonDates(requestData.startTime, requestData.endTime);
 
@@ -110,21 +110,21 @@ class LessonRequestService {
         );
 
         if (filters.startTime) {
-            queryFilters.startTime = { $gte: filters.startTime }; // Greater than or equal to startTime
+            queryFilters.startTime = {$gte: filters.startTime}; // Greater than or equal to startTime
         }
         if (filters.endTime) {
-            queryFilters.endTime = { $lte: filters.endTime }; // Less than or equal to endTime
+            queryFilters.endTime = {$lte: filters.endTime}; // Less than or equal to endTime
         }
 
 
         // Handle the status filter as an array
         if (queryFilters.status && Array.isArray(queryFilters.status)) {
-            queryFilters.status = { $in: queryFilters.status }; // Use MongoDB $in operator
+            queryFilters.status = {$in: queryFilters.status}; // Use MongoDB $in operator
         }
 
         // Handle students filter
         if (queryFilters.students && Array.isArray(queryFilters.students)) {
-            queryFilters.students = { $in: queryFilters.students }; // Match any student in the array
+            queryFilters.students = {$in: queryFilters.students}; // Match any student in the array
         }
 
         console.log("queryFilters:", queryFilters);
@@ -136,7 +136,7 @@ class LessonRequestService {
         // Fetch requests with population and sorting
         const lessonRequests = await LessonRequest.find(queryFilters)
             .populate("instructor students") // Populate referenced fields
-            .sort({ createdAt: -1 }) // Sort by most recent first
+            .sort({createdAt: -1}) // Sort by most recent first
             .skip((page - 1) * limit)
             .limit(limit);
 
@@ -153,8 +153,9 @@ class LessonRequestService {
             })
         );
 
-        return { lessonRequests: lessonRequestsWithFlags, total };
+        return {lessonRequests: lessonRequestsWithFlags, total};
     }
+
     async getAllRequests(
         filters: RequestLessonFilter = {},
         page: number = 1,
@@ -171,21 +172,21 @@ class LessonRequestService {
         );
 
         if (filters.startTime) {
-            queryFilters.startTime = { $gte: filters.startTime }; // Greater than or equal to startTime
+            queryFilters.startTime = {$gte: filters.startTime}; // Greater than or equal to startTime
         }
         if (filters.endTime) {
-            queryFilters.endTime = { $lte: filters.endTime }; // Less than or equal to endTime
+            queryFilters.endTime = {$lte: filters.endTime}; // Less than or equal to endTime
         }
 
 
         // Handle the status filter as an array
         if (queryFilters.status && Array.isArray(queryFilters.status)) {
-            queryFilters.status = { $in: queryFilters.status }; // Use MongoDB $in operator
+            queryFilters.status = {$in: queryFilters.status}; // Use MongoDB $in operator
         }
 
         // Handle students filter
         if (queryFilters.students && Array.isArray(queryFilters.students)) {
-            queryFilters.students = { $in: queryFilters.students }; // Match any student in the array
+            queryFilters.students = {$in: queryFilters.students}; // Match any student in the array
         }
 
         console.log("queryFilters:", queryFilters);
@@ -197,11 +198,11 @@ class LessonRequestService {
         // Fetch requests with population and sorting
         const lessonRequests = await LessonRequest.find(queryFilters)
             .populate("instructor students") // Populate referenced fields
-            .sort({ createdAt: -1 }) // Sort by most recent first
+            .sort({createdAt: -1}) // Sort by most recent first
             .skip((page - 1) * limit)
             .limit(limit);
 
-        return { lessonRequests, total };
+        return {lessonRequests, total};
     }
 
 
@@ -211,7 +212,7 @@ class LessonRequestService {
             // Validate participants and times
             await lessonService.validateLessonParticipants(
                 request.instructor._id,
-                request.students.map(student=> student._id),
+                request.students.map(student => student._id),
                 request.style,
                 request.type
             );
@@ -234,16 +235,16 @@ class LessonRequestService {
             $or: [
                 {
                     // Case 1: Existing request starts before the new request ends and ends after the new request starts
-                    startTime: { $lt: endTime },
-                    endTime: { $gt: startTime },
+                    startTime: {$lt: endTime},
+                    endTime: {$gt: startTime},
                 },
                 {
                     // Case 2: New request completely includes an existing request
-                    startTime: { $gte: startTime, $lt: endTime }, // Use $lt for end boundary
+                    startTime: {$gte: startTime, $lt: endTime}, // Use $lt for end boundary
                 },
                 {
                     // Case 3: Existing request completely includes the new request
-                    endTime: { $gt: startTime, $lte: endTime }, // Use $gt for start boundary
+                    endTime: {$gt: startTime, $lte: endTime}, // Use $gt for start boundary
                 },
             ],
         });
@@ -264,7 +265,7 @@ class LessonRequestService {
             {
                 $match: {
                     status: "pending",
-                    students: { $in: objectIds },
+                    students: {$in: objectIds},
                 },
             },
             {
@@ -276,7 +277,7 @@ class LessonRequestService {
             {
                 $group: {
                     _id: "$students",
-                    count: { $sum: 1 },
+                    count: {$sum: 1},
                 },
             },
         ]);
@@ -294,6 +295,7 @@ class LessonRequestService {
             );
         }
     }
+
     // Unassign a student from a lesson request
     async unassignStudent(
         studentId: mongoose.Types.ObjectId,
@@ -316,10 +318,17 @@ class LessonRequestService {
             (id) => id.toString() !== studentId.toString()
         );
 
-        // Save the updated lesson request
-        await lessonRequest.save();
+        // Check if there are no students left
+        if (lessonRequest.students.length === 0) {
+            // Delete the lesson request if no students are left
+            await LessonRequest.findByIdAndDelete(lessonRequestId);
+        } else {
+            // Otherwise, save the updated lesson request
+            await lessonRequest.save();
+        }
     }
 }
 
 
-export const lessonRequestService = new LessonRequestService();
+
+    export const lessonRequestService = new LessonRequestService();
