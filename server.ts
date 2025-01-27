@@ -23,6 +23,10 @@ let server: any; // To store the server instance
 // Create the HTTP server
 const httpServer = http.createServer(app);
 
+app.use(cors());
+// Parse JSON request body
+app.use(express.json());
+
 // Initialize Socket.IO
 const io = new Server(httpServer, {
     cors: {
@@ -52,10 +56,6 @@ io.on('connection', (socket) => {
         socket.emit('response-event', { message: 'Hello from the server!' });
     });
 });
-
-app.use(cors());
-// Parse JSON request body
-app.use(express.json());
 
 
 // Add Clerk middleware for authentication
