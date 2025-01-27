@@ -33,6 +33,7 @@ const io = new Server(httpServer, {
         origin: '*', // Allow all origins; adjust as needed for security
         methods: ['GET', 'POST'],
     },
+    transports: ["websocket", "polling"],
 });
 
 // Socket.IO middleware for logging new connections
