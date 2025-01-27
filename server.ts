@@ -119,7 +119,7 @@ const startServer = async (): Promise<void> => {
         await connectDBAtlas(); // Connect to the database using the new function
 
         console.log('Starting Express server...');
-        server = app.listen(PORT, () => {
+        httpServer.listen(PORT, () => {
             console.log(`Server is running on https://swimming-pool-api.onrender.com`);
         });
         // Self-ping every 12 minutes
